@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://qatalyst-replica.local/schemas/testcases.schema.json",
+  "title": "Testcases",
+  "description": "Machine-readable test case artifact (testcases.json) produced by the Test Case Documenter Skill and consumed by the Page Object Generator and Test Script Generator Skills.",
+  "type": "object",
+  "required": ["storyId", "generatedFrom", "testCases"],
+  "additionalProperties": false,
+  "properties": {
+    "storyId": {
+      "type": "string",
+      "description": "Jira Story ID, or a kebab-case slug when no Jira ID exists. Must match the artifacts/<slug>/ directory name."
+    },
+    "generatedFrom": {
+      "type": "object",
+      "description": "Traceability pointers back to the artifacts this file was derived from.",
+      "required": ["requirements", "testPlan"],
+      "additionalProperties": false,
+      "properties": {
+        "requirements": { "type": "string", "const": "requirements.md" },
+        "exploration": { "type": "string", "const": "exploration.md" },
+        "testPlan": { "type": "string", "const": "test-plan.md" }
+      }
+    },
+    "testCases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/testCase" }
+    }
+  },
+  "definitions": {
+    "testCase": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "type",
+        "priority",
+        "preconditions",
+        "steps",
+        "expectedResult",
+        "linkedRequirement",
+        "linkedScenario",
+        "automationStatus"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^TC-[0-9]{3,}$",
+          "description": "Stable test case ID, e.g. TC-001. Must match the ID used in test-cases.md and in the generated spec's test title."
+        },
+        "title": {
+          "type": "string",
+          "description": "Short, action-oriented test case title."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["positive", "negative", "boundary", "regression"]
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["P1", "P2", "P3"]
+        },
+        "preconditions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["stepNumber", "action", "expectedResult"],
+            "additionalProperties": false,
+            "properties": {
+              "stepNumber": { "type": "integer", "minimum": 1 },
+              "action": { "type": "string" },
+              "testData": { "type": "string" },
+              "expectedResult": { "type": "string" }
+            }
+          }
+        },
+        "expectedResult": {
+          "type": "string",
+          "description": "Overall expected outcome of the test case."
+        },
+        "linkedRequirement": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Acceptance criteria or requirement references from requirements.md."
+        },
+        "linkedScenario": {
+          "type": "string",
+          "description": "Scenario ID from test-plan.md (e.g. SC-014) this test case implements."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "automationStatus": {
+          "type": "string",
+          "enum": ["planned", "automated", "not-automated", "blocked"]
+        },
+        "assumptions": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}
