@@ -1,0 +1,9 @@
+{
+     "username" : "Admin",
+     "password" : "admin123",
+     "fullname" : "Mario",
+     "lastname" : "James",
+     "email" : "123@yopmail.com",
+     "empid" : "E123",
+     "path" : "./uploadFiles/ResumeTemplate.docx"
+}
