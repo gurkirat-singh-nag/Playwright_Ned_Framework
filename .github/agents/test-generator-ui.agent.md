@@ -21,6 +21,8 @@ tools:
   - edit
   - execute
   - todo
+  - atlassian
+  - playwright
 
 model: Claude Sonnet 4.5
 

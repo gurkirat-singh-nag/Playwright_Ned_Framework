@@ -11,11 +11,11 @@ Generate reusable Page Objects for the target automation framework using locator
 
 ## Outputs
 
-- `pageobjects/`
+- `page-objects/`
 
 ## Artifacts Produced
 
-- `pageobjects/` - one Page Object class or module per page/component required by `testcases.json`, following [page-object.instructions.md](../../instructions/page-object.instructions.md).
+- `page-objects/` - one Page Object class per page/component required by `testcases.json`, following [page-object.instructions.md](../../instructions/page-object.instructions.md) (CommonJS class, `camelCase` name with `Page` suffix, `module.exports`).
 
 ## Artifacts Consumed
 
@@ -24,10 +24,10 @@ Generate reusable Page Objects for the target automation framework using locator
 ## Execution Steps
 
 1. Read `testcases.json` to determine every distinct `targetPage` required.
-2. For each required page, check whether a matching Page Object already exists in `pageobjects/` (or the target repository's existing Page Object directory); if so, reuse it.
-3. For each page without an existing Page Object, generate one using the locator strategy priority documented in `exploration.md`: accessible role/label > `data-testid` > stable `id` > other.
+2. For each required page, check whether a matching Page Object already exists in the project's `page-objects/` folder; if so, reuse it.
+3. For each page without an existing Page Object, generate one using the locator strategy priority documented in `exploration.md`: `getByRole`/`getByPlaceholder`/`getByLabel` > `data-testid` > stable `id` > other.
 4. Update each test case's `requiredPageObjects` field in `testcases.json` to reflect the Page Object(s) it depends on.
-5. Write `pageobjects/`.
+5. Write `page-objects/`.
 
 ## Failure Handling
 

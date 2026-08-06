@@ -16,6 +16,7 @@ tools:
   - read
   - edit
   - todo
+  - atlassian
 
 model: Claude Sonnet 4.5
 

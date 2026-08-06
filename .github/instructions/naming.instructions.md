@@ -1,6 +1,6 @@
 ---
 description: "Use when naming pipeline artifacts, folders, Page Objects, test specs, or test case/scenario IDs. Enterprise naming conventions for the test automation pipeline."
-applyTo: "artifacts/**, **/pageobjects/**, **/*.spec.ts"
+applyTo: "artifacts/**, **/page-objects/**, **/*.spec.js"
 ---
 
 # Naming Conventions
@@ -17,7 +17,7 @@ artifacts/<slug>/
 ├── test-plan.md
 ├── test-cases.md
 ├── testcases.json
-├── pageobjects/
+├── page-objects/
 └── tests/
 ```
 
@@ -33,14 +33,14 @@ artifacts/<slug>/
 
 ## Page Objects
 
-- One class (or module) per page or major reusable component.
-- `PascalCase` class name suffixed with `Page` (e.g. `LoginPage`, `CheckoutPage`).
-- File name matches the class in the target project's existing case convention.
+- One class per page or major reusable component, in the project's existing `page-objects/` folder (hyphenated).
+- `camelCase` class name suffixed with `Page` (e.g. `loginPage`, `dashboardPage`), matching the project's existing convention.
+- File name matches the class name exactly (e.g. `loginPage.js`).
 
 ## Test Specs
 
-- File naming: `<feature-or-story-slug>.spec.ts`, kebab-case, one file per feature or story unless the target project already groups differently.
-- Test titles include the Test Case ID for traceability (e.g. `TC-101: ...`).
+- File naming: `<Feature>Test.spec.js`, matching the project's existing convention (e.g. `loginTest.spec.js`), one file per feature unless the target project already groups differently.
+- New generated tests should include the Test Case ID in the test title for traceability (e.g. `TC-101: ...`). Do not retrofit this onto existing tests that predate the pipeline.
 
 ## Screenshots
 

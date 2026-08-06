@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Generate executable test specs for the target automation framework by combining `pageobjects/` with `testcases.json`.
+Generate executable test specs for the target automation framework by combining `page-objects/` with `testcases.json`.
 
 ## Inputs
 
-- `pageobjects/`
+- `page-objects/`
 - `testcases.json`
 
 ## Outputs
@@ -15,17 +15,17 @@ Generate executable test specs for the target automation framework by combining 
 
 ## Artifacts Produced
 
-- `tests/` - one spec per feature/story, one test per `testcases.json` entry, following [playwright.instructions.md](../../instructions/playwright.instructions.md).
+- `tests/` - one `<Feature>Test.spec.js` per feature/story, one test per `testcases.json` entry, following [playwright.instructions.md](../../instructions/playwright.instructions.md) (CommonJS `require`, `test.describe`/`test`/`expect`).
 
 ## Artifacts Consumed
 
-- `pageobjects/` and `testcases.json` only. This Skill must never contact Jira, Confluence, or the live application directly.
+- `page-objects/` and `testcases.json` only. This Skill must never contact Jira, Confluence, or the live application directly.
 
 ## Execution Steps
 
 1. Read `testcases.json` and the Page Objects referenced by each test case's `requiredPageObjects`.
 2. For each test case, check whether a corresponding test already exists in `tests/` and is up to date; if so, skip it.
-3. Otherwise, compose a test using the required Page Object(s), existing fixtures, and helpers.
+3. Otherwise, compose a test using the required Page Object(s), reusing `utils/testDataUtils.json` for test data and `auth.json` storage state where the flow requires an authenticated session.
 4. Write `tests/`.
 
 ## Failure Handling

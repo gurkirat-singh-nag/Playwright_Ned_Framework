@@ -3,3 +3,11 @@ auth.json
 allure-report/
 allure-results/
 test-results/
+# Playwright HTML reports
+playwright-report/
+
+# Agentic pipeline artifacts  
+artifacts/
+
+# MCP server runtime
+.playwright-mcp/
