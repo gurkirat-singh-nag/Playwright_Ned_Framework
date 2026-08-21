@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://qatalyst-replica.local/schemas/pipeline-state.schema.json",
+  "title": "Pipeline State",
+  "description": "Story-scoped checkpoint/resume state (pipeline-state.json), produced and consumed by .github/skills/pipeline-state/state.js.",
+  "type": "object",
+  "required": ["story", "status", "currentStage", "stages", "timestamps", "errors"],
+  "additionalProperties": false,
+  "properties": {
+    "story": { "type": "string" },
+    "status": { "type": "string", "enum": ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "FAILED", "BLOCKED"] },
+    "currentStage": {
+      "type": "string",
+      "enum": ["story-analysis", "framework-discovery", "test-architecture", "test-validation", "capability-discovery", "exploration", "test-generation", "execution", "healing", "reporting"]
+    },
+    "stages": {
+      "type": "object",
+      "required": ["story-analysis", "framework-discovery", "test-architecture", "test-validation", "capability-discovery", "exploration", "test-generation", "execution", "healing", "reporting"],
+      "additionalProperties": false,
+      "properties": {
+        "story-analysis": { "$ref": "#/definitions/stageEntry" },
+        "framework-discovery": { "$ref": "#/definitions/stageEntry" },
+        "test-architecture": { "$ref": "#/definitions/stageEntry" },
+        "test-validation": { "$ref": "#/definitions/stageEntry" },
+        "capability-discovery": { "$ref": "#/definitions/stageEntry" },
+        "exploration": { "$ref": "#/definitions/stageEntry" },
+        "test-generation": { "$ref": "#/definitions/stageEntry" },
+        "execution": { "$ref": "#/definitions/stageEntry" },
+        "healing": { "$ref": "#/definitions/stageEntry" },
+        "reporting": { "$ref": "#/definitions/stageEntry" }
+      }
+    },
+    "reuse": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "decision": { "type": "string" },
+        "coverage": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "timestamps": {
+      "type": "object",
+      "required": ["created"],
+      "additionalProperties": true,
+      "properties": {
+        "created": { "type": "string" }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["stage", "at", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "stage": { "type": "string" },
+          "at": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "stageEntry": {
+      "type": "object",
+      "required": ["status"],
+      "additionalProperties": true,
+      "properties": {
+        "status": { "type": "string", "enum": ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "FAILED", "SKIPPED", "BLOCKED"] },
+        "validatedAt": { "type": "string" },
+        "inputHash": { "type": ["string", "null"] },
+        "detail": { "type": "string" },
+        "reason": { "type": "string" },
+        "at": { "type": "string" },
+        "invalidatedReason": { "type": "string" },
+        "file": { "type": "string" }
+      }
+    }
+  }
+}

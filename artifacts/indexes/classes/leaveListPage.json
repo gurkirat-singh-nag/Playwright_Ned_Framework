@@ -1,0 +1,44 @@
+{
+  "className": "leaveListPage",
+  "file": "page-objects/leaveListPage.js",
+  "type": "PageObject",
+  "methods": [
+    {
+      "name": "clickSearch",
+      "params": [],
+      "async": true,
+      "description": "Run the current search filters"
+    },
+    {
+      "name": "goto",
+      "params": [],
+      "async": true,
+      "description": "Navigate to Leave List page via the sidebar Leave link"
+    },
+    {
+      "name": "isNoRecordsFound",
+      "params": [],
+      "async": true,
+      "description": "Verify no leave records match the current filters"
+    },
+    {
+      "name": "searchByEmployeeName",
+      "params": [
+        "employeeName"
+      ],
+      "async": true,
+      "description": "Search for leave records by employee name"
+    }
+  ],
+  "locators": [
+    "employeeNameField",
+    "fromDateField",
+    "leaveHeading",
+    "noRecordsFoundText",
+    "resetButton",
+    "searchButton",
+    "tableRows",
+    "toDateField"
+  ],
+  "lastUpdated": "2026-08-21T08:35:02.177Z"
+}

@@ -18,6 +18,12 @@
       "description": "Click Assign button to submit form"
     },
     {
+      "name": "confirmAssignmentIfPrompted",
+      "params": [],
+      "async": true,
+      "description": "Confirm the \"Employee does not have sufficient leave balance\" dialog if it"
+    },
+    {
       "name": "enterComments",
       "params": [
         "comments"
@@ -102,6 +108,12 @@
       ],
       "async": true,
       "description": "Set To Date using date picker"
+    },
+    {
+      "name": "verifyAssignmentSuccess",
+      "params": [],
+      "async": true,
+      "description": "Verify the \"Successfully Saved\" toast appeared after a leave assignment."
     }
   ],
   "locators": [
@@ -109,6 +121,7 @@
     "assignLeaveHeading",
     "assignLeaveTopNavLink",
     "commentsField",
+    "confirmAssignmentOkButton",
     "employeeNameField",
     "fromDateCalendarIcon",
     "fromDateField",
@@ -117,8 +130,9 @@
     "leaveTypeDropdown",
     "logoutMenuItem",
     "profileDropdownTrigger",
+    "successToast",
     "toDateCalendarIcon",
     "toDateField"
   ],
-  "lastUpdated": "2026-08-21T00:51:35.422Z"
+  "lastUpdated": "2026-08-21T08:35:02.172Z"
 }

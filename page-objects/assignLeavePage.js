@@ -27,6 +27,10 @@ class assignLeavePage {
         // Logout elements
         this.profileDropdownTrigger = page.locator('span').filter({ hasText: 'admin okegu last Name' });
         this.logoutMenuItem = page.getByRole('menuitem', { name: 'Logout' });
+
+        // Insufficient-balance confirmation dialog and success toast
+        this.confirmAssignmentOkButton = page.getByRole('button', { name: 'Ok' });
+        this.successToast = page.locator('.oxd-toast');
     }
 
     /**
@@ -170,6 +174,31 @@ async selectFirstEmployeeFromDropdown() {
     async isEmployeeSelected(expectedName) {
         const actualValue = await this.employeeNameField.inputValue();
         return actualValue.includes(expectedName);
+    }
+
+    /**
+     * Confirm the "Employee does not have sufficient leave balance" dialog if it
+     * appears after clicking Assign. Not every assignment triggers it (only when
+     * the employee lacks balance for the selected leave type), so this is a no-op
+     * when the dialog never shows up.
+     */
+    async confirmAssignmentIfPrompted() {
+        try {
+            await this.confirmAssignmentOkButton.waitFor({ state: 'visible', timeout: 5000 });
+            await this.confirmAssignmentOkButton.click();
+        } catch {
+            // Dialog did not appear - sufficient balance, nothing to confirm.
+        }
+    }
+
+    /**
+     * Verify the "Successfully Saved" toast appeared after a leave assignment.
+     * @returns {Promise<boolean>} True if the success toast is visible.
+     */
+    async verifyAssignmentSuccess() {
+        await this.successToast.waitFor({ state: 'visible', timeout: 5000 });
+        const text = await this.successToast.textContent();
+        return text.includes('Successfully');
     }
 }
 

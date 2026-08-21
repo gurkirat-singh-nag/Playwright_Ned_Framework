@@ -1,0 +1,220 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://qatalyst-replica.local/schemas/test-design.schema.json",
+  "title": "Test Design",
+  "description": "Machine-readable test design artifact (test-design.json) produced by the Test Architect Skill and consumed by Test Plan Generator / Test Case Documenter / the reuse-enforcement hook.",
+  "type": "object",
+  "required": ["storyId", "generatedFrom", "acceptanceCriteria", "scenarios", "coverage"],
+  "additionalProperties": false,
+  "properties": {
+    "storyId": {
+      "type": "string",
+      "description": "Jira Story ID, or kebab-case slug when no Jira ID exists. Must match the artifacts/<slug>/ directory name."
+    },
+    "generatedFrom": {
+      "type": "object",
+      "description": "Traceability pointers back to the artifacts this design was derived from.",
+      "required": ["requirements"],
+      "additionalProperties": false,
+      "properties": {
+        "requirements": { "type": "string", "const": "requirements.md" },
+        "frameworkProfile": { "type": "string", "const": "artifacts/indexes/framework-profile.json" },
+        "exploration": { "type": "string", "const": "exploration.md" },
+        "existingTestCases": { "type": "string", "const": "testcases.json" }
+      }
+    },
+    "framework": {
+      "type": "object",
+      "description": "Snapshot of the relevant framework-profile.json fields at design time, omitted entirely when no profile was available.",
+      "additionalProperties": false,
+      "properties": {
+        "uiFramework": { "type": "string" },
+        "apiFramework": { "type": "string" },
+        "testRunner": { "type": "string" },
+        "architecture": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ui": { "type": "string" },
+            "api": { "type": "string" }
+          }
+        }
+      }
+    },
+    "acceptanceCriteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "text"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^AC-[0-9]+$"
+          },
+          "text": { "type": "string" }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/scenario" }
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["totalAcceptanceCriteria", "coveredAcceptanceCriteria", "uncoveredAcceptanceCriteria"],
+      "additionalProperties": false,
+      "properties": {
+        "totalAcceptanceCriteria": { "type": "integer", "minimum": 0 },
+        "coveredAcceptanceCriteria": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^AC-[0-9]+$" }
+        },
+        "uncoveredAcceptanceCriteria": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^AC-[0-9]+$" }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "additionalProperties": false,
+        "properties": {
+          "description": { "type": "string" },
+          "relatedScenarios": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^SC-[0-9]{3,}$" }
+          }
+        }
+      }
+    },
+    "testData": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "additionalProperties": false,
+        "properties": {
+          "description": { "type": "string" },
+          "source": {
+            "type": "string",
+            "description": "Where this data comes from, e.g. 'utils/testDataUtils.json' or 'requirements.md'. Omit if unresolved."
+          },
+          "unresolved": {
+            "type": "boolean",
+            "description": "True when this data dependency could not be located in any evidence - see 'Test data dependency unresolved.' rule."
+          }
+        }
+      }
+    },
+    "automationCandidates": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^SC-[0-9]{3,}$" }
+    },
+    "manualCandidates": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^SC-[0-9]{3,}$" }
+    },
+    "unclearCandidates": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^SC-[0-9]{3,}$" }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["acceptanceCriteria", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "acceptanceCriteria": { "type": "string", "pattern": "^AC-[0-9]+$" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "e.g. 'framework profile unavailable' - honest notes about what this design could not establish."
+    }
+  },
+  "definitions": {
+    "scenario": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "priority",
+        "type",
+        "acceptanceCriteria",
+        "technology",
+        "steps",
+        "expectedResult",
+        "automationCandidate",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^SC-[0-9]{3,}$",
+          "description": "Scenario ID, same ID space as test-plan.md - assigned once here, never reused for a different scenario."
+        },
+        "title": { "type": "string" },
+        "priority": {
+          "type": "string",
+          "enum": ["P1", "P2", "P3"]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "positive", "negative", "boundary", "validation",
+            "authentication", "business-rule", "data-validation",
+            "integration", "state-transition", "regression", "alternate-flow"
+          ]
+        },
+        "acceptanceCriteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^AC-[0-9]+$" }
+        },
+        "technology": {
+          "type": "string",
+          "enum": ["UI", "API", "both", "integration", "manual-only"]
+        },
+        "existingCapabilityHint": {
+          "type": "string",
+          "description": "Coarse, story-level guess that an existing capability may cover this scenario, e.g. 'Likely reusable: login capability'. NOT a resolved reuse decision - that belongs to the reuse-enforcement hook."
+        },
+        "preconditions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "testData": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Technology-neutral, business-language steps - no locators or API call syntax."
+        },
+        "expectedResult": { "type": "string" },
+        "automationCandidate": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "string", "const": "unclear" }
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "One-line rationale for the automationCandidate classification."
+        }
+      }
+    }
+  }
+}

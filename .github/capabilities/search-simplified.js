@@ -21,11 +21,12 @@ const INDEXES_DIR = path.join(WORKSPACE_ROOT, 'artifacts', 'indexes');
 const MANIFEST_PATH = path.join(INDEXES_DIR, '_manifest.json');
 
 function tokenize(text) {
+  // Split camelCase BEFORE lowercasing - [a-z0-9][A-Z] never matches on already-lowercased
+  // text, which would silently collapse e.g. "loginPage" into one blob token.
   return text
-    .toLowerCase()
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .toLowerCase()
     .split(/[^a-z0-9]+/i)
-    .map(t => t.toLowerCase())
     .filter(Boolean);
 }
 

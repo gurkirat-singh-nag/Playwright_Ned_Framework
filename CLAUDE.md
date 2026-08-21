@@ -31,17 +31,30 @@ There is no lint/build/typecheck script configured. `pretest` (via npm lifecycle
 
 ## Agentic pipeline architecture (`.github/`)
 
+Before routing a request, `unified-test-orchestrator` runs the `framework-discovery` Skill (`node .github/skills/framework-discovery/detect.js`) to identify the repository's tech stack from static evidence only (`package.json`, config files, directory structure — never a browser/MCP session). Result is cached at `artifacts/indexes/framework-profile.json`, keyed by a signature hash of the evidence it read; only regenerated when that evidence changes. See [.github/skills/framework-discovery/README.md](.github/skills/framework-discovery/README.md).
+
 The scaffold implements a strict, one-directional artifact pipeline, each phase owned by a single-responsibility **Skill**, coordinated by a thin **Agent** that contains no generation logic itself:
 
 ```
 Jira Story
   -> requirements.md                (jira-story-analyzer)
+  -> test-design.md / .json         (test-architect - technology-neutral, AC-traceable scenarios)
+  -> test-validation.md / .json     (test-validator - GATE: BLOCKED stops the pipeline here)
+  -> reuse-decision.json            (02.5_intelligent-reuse-enforcement.hook.md)
   -> exploration.md + screenshots/  (playwright-browser-exploration, via Playwright MCP)
   -> test-plan.md                   (test-plan-generator)
   -> test-cases.md / testcases.json (test-case-documenter)
   -> page-objects/                  (page-object-generator)
   -> tests/                         (test-script-generator)
 ```
+
+`test-architect` (see [.github/skills/test-architect/README.md](.github/skills/test-architect/README.md)) answers "what should we test" - acceptance-criteria-traceable scenarios, automation/manual classification, test data, risks - strictly before "what can we reuse" (the hook above) and "how do we implement it" (the generator Skills). It never writes automation code and never launches MCP.
+
+`test-validator` (see [.github/skills/test-validator/README.md](.github/skills/test-validator/README.md)) is a **gate** immediately after it: validates `test-design.json` for completeness, traceability, duplication, automation feasibility, technology consistency, and artifact integrity (including catching a malformed `testcases.json` from an earlier pipeline run - never repaired automatically, only reported). `status: BLOCKED` stops the pipeline before capability discovery or generation ever run. Half of it is deterministic code (`.github/skills/test-validator/validate.js`); half is reasoning applied by the invoking agent, same split as Test Architect vs. Framework Discovery.
+
+Both `test-architect` and `test-validator` are **shared** between the UI pipeline above and the API pipeline (`test-generator-api.agent.md`) - not duplicated per project type. The API pipeline continues past the gate into `api-capability-discovery` (see [.github/skills/api-capability-discovery/README.md](.github/skills/api-capability-discovery/README.md)): the API equivalent of the reuse-enforcement hook, searching `artifacts/indexes/api/` (one file per real API client class, same "no business-capability abstraction" contract as `artifacts/indexes/classes/`) and deciding `FULL_REUSE`/`PARTIAL_REUSE`/`NO_REUSE` before any Swagger/live-API exploration is allowed to run. **This repository currently has zero API automation** (no client source, no `axios`/`supertest`/`rest-assured` dependency) - the index and searches are built to work correctly the moment one is added, not around fabricated examples.
+
+Every stage above is checkpointed to `artifacts/<slug>/pipeline-state.json` via the shared [.github/skills/pipeline-state/state.js](.github/skills/pipeline-state/state.js) utility (not a Skill - plumbing every agent calls at existing Skill boundaries). A stage is `COMPLETED` only when its artifact is re-validated on disk, never merely because an agent invoked it; a `BLOCKED` Test Validator result records `status: "BLOCKED"` durably, so a restarted pipeline re-checks the blocker instead of silently marching past it; a `FULL_REUSE` capability-discovery decision marks `exploration` `SKIPPED` and that survives a restart too - the core point of the mechanism is that resuming an interrupted pipeline never re-launches MCP for a stage that was already resolved.
 
 Every run's artifacts live under `artifacts/<slug>/` (e.g. `artifacts/kan-1/`, `artifacts/kan-2/`), where `<slug>` matches the driving Jira story ID. No artifact is regenerated once it exists and remains valid.
 
