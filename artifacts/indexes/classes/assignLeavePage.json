@@ -1,0 +1,124 @@
+{
+  "className": "assignLeavePage",
+  "file": "page-objects/assignLeavePage.js",
+  "type": "PageObject",
+  "methods": [
+    {
+      "name": "assignLeave",
+      "params": [
+        "leaveData"
+      ],
+      "async": true,
+      "description": "Fill complete Assign Leave form and submit"
+    },
+    {
+      "name": "clickAssign",
+      "params": [],
+      "async": true,
+      "description": "Click Assign button to submit form"
+    },
+    {
+      "name": "enterComments",
+      "params": [
+        "comments"
+      ],
+      "async": true,
+      "description": "Enter optional comments"
+    },
+    {
+      "name": "getLeaveBalanceText",
+      "params": [],
+      "async": true,
+      "description": "Get Leave Balance text for assertion"
+    },
+    {
+      "name": "isAssignLeavePageDisplayed",
+      "params": [],
+      "async": true,
+      "description": "Verify Assign Leave page is displayed"
+    },
+    {
+      "name": "isEmployeeSelected",
+      "params": [
+        "expectedName"
+      ],
+      "async": true,
+      "description": "Verify employee name field is populated with selected employee"
+    },
+    {
+      "name": "logout",
+      "params": [],
+      "async": true,
+      "description": "Logout from application"
+    },
+    {
+      "name": "navigateToAssignLeave",
+      "params": [],
+      "async": true,
+      "description": "Navigate to Assign Leave page from Dashboard"
+    },
+    {
+      "name": "searchEmployee",
+      "params": [
+        "searchTerm"
+      ],
+      "async": true,
+      "description": "Search for employee by typing search term"
+    },
+    {
+      "name": "selectEmployeeFromDropdown",
+      "params": [
+        "employeeName"
+      ],
+      "async": true,
+      "description": "Select employee from autocomplete dropdown"
+    },
+    {
+      "name": "selectFirstEmployeeFromDropdown",
+      "params": [],
+      "async": true,
+      "description": "Select the first employee from autocomplete dropdown"
+    },
+    {
+      "name": "selectLeaveType",
+      "params": [
+        "leaveTypeName"
+      ],
+      "async": true,
+      "description": "Select leave type from dropdown"
+    },
+    {
+      "name": "setFromDate",
+      "params": [
+        "date"
+      ],
+      "async": true,
+      "description": "Set From Date using date picker"
+    },
+    {
+      "name": "setToDate",
+      "params": [
+        "date"
+      ],
+      "async": true,
+      "description": "Set To Date using date picker"
+    }
+  ],
+  "locators": [
+    "assignButton",
+    "assignLeaveHeading",
+    "assignLeaveTopNavLink",
+    "commentsField",
+    "employeeNameField",
+    "fromDateCalendarIcon",
+    "fromDateField",
+    "leaveBalanceText",
+    "leaveSidebarLink",
+    "leaveTypeDropdown",
+    "logoutMenuItem",
+    "profileDropdownTrigger",
+    "toDateCalendarIcon",
+    "toDateField"
+  ],
+  "lastUpdated": "2026-08-21T00:51:35.422Z"
+}

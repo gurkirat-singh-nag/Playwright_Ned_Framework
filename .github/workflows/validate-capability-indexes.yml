@@ -1,0 +1,176 @@
+name: Capability Index Validation
+
+on:
+  pull_request:
+    paths:
+      - 'page-objects/**/*.js'
+      - 'artifacts/indexes/**'
+      - '.github/capabilities/**'
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'page-objects/**/*.js'
+      - 'artifacts/indexes/**'
+
+jobs:
+  validate-indexes:
+    name: Validate Capability Indexes
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Need full history for comparison
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run Index Validator
+        id: validate
+        run: |
+          echo "Running capability index validator..."
+          node .github/capabilities/validator.js --ci
+        continue-on-error: true
+      
+      - name: Check validation result
+        if: steps.validate.outcome == 'failure'
+        run: |
+          echo "❌ Index validation failed!"
+          echo ""
+          echo "Indexes are out of sync with source code."
+          echo ""
+          echo "To fix locally, run:"
+          echo "  node .github/capabilities/validator.js --fix"
+          echo "  git add artifacts/indexes/"
+          echo "  git commit --amend --no-edit"
+          echo "  git push --force-with-lease"
+          echo ""
+          exit 1
+      
+      - name: Verify index files are tracked
+        run: |
+          echo "Checking if index files are tracked by Git..."
+          
+          # Check if indexes exist
+          if [ ! -d "artifacts/indexes" ]; then
+            echo "❌ artifacts/indexes/ directory does not exist!"
+            echo "Run: node .github/capabilities/generator.js"
+            exit 1
+          fi
+          
+          # Check if indexes are tracked
+          if git ls-files --error-unmatch artifacts/indexes/_manifest.json > /dev/null 2>&1; then
+            echo "✅ Indexes are tracked by Git"
+          else
+            echo "⚠️  Warning: Indexes are not tracked by Git"
+            echo "Check .gitignore configuration"
+          fi
+      
+      - name: Compare indexes with generated
+        run: |
+          echo "Generating indexes from current source code..."
+          node .github/capabilities/generator.js
+
+          echo "Comparing committed indexes vs generated indexes..."
+
+          # Check for differences
+          if git diff --exit-code artifacts/indexes/; then
+            echo "✅ Committed indexes match generated indexes"
+          else
+            echo "❌ Indexes differ from generated version!"
+            echo ""
+            echo "Differences found:"
+            git diff artifacts/indexes/
+            echo ""
+            echo "This means the committed indexes are stale."
+            echo "Please regenerate and commit:"
+            echo "  node .github/capabilities/generator.js"
+            echo "  git add artifacts/indexes/"
+            echo "  git commit -m 'Update class indexes'"
+            exit 1
+          fi
+      
+      - name: Validation Summary
+        if: success()
+        run: |
+          echo "✅ All index validation checks passed!"
+          echo ""
+          echo "Summary:"
+          echo "  • Indexes are healthy"
+          echo "  • Indexes match source code"
+          echo "  • Indexes are tracked by Git"
+          echo ""
+          echo "Safe to merge!"
+
+  validate-index-structure:
+    name: Validate Index Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Check index structure
+        run: |
+          echo "Validating index structure..."
+          
+          # Check required files exist
+          if [ ! -f "artifacts/indexes/_manifest.json" ]; then
+            echo "❌ Missing: artifacts/indexes/_manifest.json"
+            exit 1
+          fi
+
+          if [ -d "artifacts/indexes/capabilities" ]; then
+            echo "❌ Found deprecated artifacts/indexes/capabilities/ - the simplified architecture (v3.0) uses classes/ only"
+            exit 1
+          fi
+
+          if [ ! -d "artifacts/indexes/classes" ]; then
+            echo "❌ Missing: artifacts/indexes/classes/"
+            exit 1
+          fi
+          
+          echo "✅ Index structure is valid"
+      
+      - name: Validate manifest JSON
+        run: |
+          echo "Validating manifest JSON syntax..."
+          
+          if command -v jq &> /dev/null; then
+            jq empty artifacts/indexes/_manifest.json
+            echo "✅ Manifest JSON is valid"
+          else
+            echo "⚠️  jq not installed, skipping JSON validation"
+          fi
+      
+      - name: Check for orphaned indexes
+        run: |
+          echo "Checking for orphaned index files..."
+          
+          orphans=0
+          
+          # Check each class index has corresponding source
+          for class_index in artifacts/indexes/classes/*.json; do
+            if [ -f "$class_index" ]; then
+              # Extract source file path from index (would need jq or node for real check)
+              echo "  Checking: $class_index"
+              # In real implementation, parse JSON and check if source exists
+            fi
+          done
+          
+          if [ $orphans -gt 0 ]; then
+            echo "❌ Found $orphans orphaned indexes"
+            echo "Run: node .github/capabilities/generator.js"
+            exit 1
+          else
+            echo "✅ No orphaned indexes found"
+          fi

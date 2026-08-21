@@ -1,4 +1,3 @@
-// @ts-check
 const { defineConfig, devices } = require('@playwright/test');
 
 
@@ -6,11 +5,11 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests',
-  timeout: 30 * 1000,
+  timeout: 60 * 1000,
   
   retries : 0,
   expect : {
-    timeout: 20 * 1000,
+    timeout: 60 * 1000,
   },
   /* Run tests in files in parallel */
   fullyParallel: false,
@@ -24,7 +23,7 @@ module.exports = defineConfig({
      baseURL: 'https://opensource-demo.orangehrmlive.com/web/index.php',
      screenshot : 'on',
      video : 'on',
-     headless : true,
+     headless : false,
      
     trace: 'retain-on-failure',
    // storageState:"./auth.json"

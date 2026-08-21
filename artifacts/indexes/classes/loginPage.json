@@ -1,0 +1,35 @@
+{
+  "className": "loginPage",
+  "file": "page-objects/loginPage.js",
+  "type": "PageObject",
+  "methods": [
+    {
+      "name": "assertUserValidation",
+      "params": [],
+      "async": true,
+      "description": "Assert user validation"
+    },
+    {
+      "name": "goto",
+      "params": [],
+      "async": true,
+      "description": "Goto"
+    },
+    {
+      "name": "validUserLogin",
+      "params": [
+        "userName",
+        "password"
+      ],
+      "async": true,
+      "description": "Valid user login"
+    }
+  ],
+  "locators": [
+    "DashboardHeading",
+    "Loginbutton",
+    "Password",
+    "Username"
+  ],
+  "lastUpdated": "2026-08-21T00:51:35.430Z"
+}

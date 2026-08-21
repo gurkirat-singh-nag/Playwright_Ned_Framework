@@ -6,8 +6,23 @@ test-results/
 # Playwright HTML reports
 playwright-report/
 
-# Agentic pipeline artifacts  
-artifacts/
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Agentic pipeline artifacts - ignore top-level entries by default (test run
+# under artifacts/<slug>/, screenshots, logs, etc.), except the class index.
+# NOTE: must be artifacts/* (direct-children wildcard), not artifacts/ -
+# a bare "artifacts/" blocks git from descending into the tree at all, which
+# makes every !artifacts/... exception below silently dead (verified via
+# `git check-ignore -v`).
+artifacts/*
+
+!artifacts/indexes/
+
+# Ignore deprecated capability abstraction layer (should stay empty/absent)
+artifacts/indexes/capabilities/
+
 
 # MCP server runtime
 .playwright-mcp/

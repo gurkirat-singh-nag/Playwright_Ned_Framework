@@ -62,6 +62,16 @@ class assignLeavePage {
     }
 
     /**
+ * Select the first employee from autocomplete dropdown
+ */
+async selectFirstEmployeeFromDropdown() {
+    // Select the first option from the dropdown list
+    await this.page.getByRole('option').first().click();
+    // Wait for dropdown to close
+    await this.page.waitForTimeout(500);
+}
+
+    /**
      * Select leave type from dropdown
      * @param {string} leaveTypeName - Leave type to select (e.g., "CAN - Fad", "US - Vacation")
      */

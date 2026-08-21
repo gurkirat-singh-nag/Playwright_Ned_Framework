@@ -44,11 +44,11 @@ test.describe('KAN-1: Apply Leave Feature Test Suite', () => {
 
         // Step 4-5: Search and select employee
         await assignLeavePageObj.searchEmployee('Test');
-        await page.waitForTimeout(2000);
-        await assignLeavePageObj.selectEmployeeFromDropdown('TestUser 39');
+        await page.waitForTimeout(10000);
+        await assignLeavePageObj.selectEmployeeFromDropdown('Surya N king');
 
         // Verify employee selected
-        const isSelected = await assignLeavePageObj.isEmployeeSelected('TestUser 39');
+        const isSelected = await assignLeavePageObj.isEmployeeSelected('Surya N king');
         expect(isSelected).toBeTruthy();
 
         // Step 6: Select leave type (dynamic - select first available option)

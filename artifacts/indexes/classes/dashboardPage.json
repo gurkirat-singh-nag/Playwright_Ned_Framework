@@ -1,0 +1,155 @@
+{
+  "className": "dashboardPage",
+  "file": "page-objects/dashboardPage.js",
+  "type": "PageObject",
+  "methods": [
+    {
+      "name": "clickAddbutton",
+      "params": [],
+      "async": true,
+      "description": "Click addbutton"
+    },
+    {
+      "name": "clickApplyLeave",
+      "params": [],
+      "async": true,
+      "description": "Click Apply Leave button in Quick Launch widget"
+    },
+    {
+      "name": "clickAssignLeave",
+      "params": [],
+      "async": true,
+      "description": "Click Assign Leave button in Quick Launch widget"
+    },
+    {
+      "name": "clickLogout",
+      "params": [],
+      "async": true,
+      "description": "Click Logout from profile menu"
+    },
+    {
+      "name": "clickPim",
+      "params": [],
+      "async": true,
+      "description": "Click pim"
+    },
+    {
+      "name": "clickRecruitment",
+      "params": [],
+      "async": true,
+      "description": "Click recruitment"
+    },
+    {
+      "name": "enterEmpid",
+      "params": [
+        "empid"
+      ],
+      "async": true,
+      "description": "Enter empid"
+    },
+    {
+      "name": "fillEmailInfo",
+      "params": [
+        "email"
+      ],
+      "async": true,
+      "description": "Fill email info"
+    },
+    {
+      "name": "fillUserInfo",
+      "params": [
+        "fname",
+        "lname"
+      ],
+      "async": true,
+      "description": "Fill user info"
+    },
+    {
+      "name": "logout",
+      "params": [],
+      "async": true,
+      "description": "Complete logout flow: open profile menu and click logout"
+    },
+    {
+      "name": "openProfileMenu",
+      "params": [],
+      "async": true,
+      "description": "Open profile dropdown menu"
+    },
+    {
+      "name": "rejectCandidate",
+      "params": [],
+      "async": true,
+      "description": "Reject candidate"
+    },
+    {
+      "name": "saveFile",
+      "params": [],
+      "async": true,
+      "description": "Save file"
+    },
+    {
+      "name": "searchCandidate",
+      "params": [
+        "uname"
+      ],
+      "async": true,
+      "description": "Search candidate"
+    },
+    {
+      "name": "selectCheckobox",
+      "params": [],
+      "async": true,
+      "description": "Select checkobox"
+    },
+    {
+      "name": "selectVacency",
+      "params": [],
+      "async": true,
+      "description": "Select vacency"
+    },
+    {
+      "name": "uploadFile",
+      "params": [
+        "file"
+      ],
+      "async": true,
+      "description": "Upload file"
+    }
+  ],
+  "locators": [
+    "AddButton",
+    "AddCandidateButton",
+    "AddeEmployeeHeading",
+    "Browse",
+    "CandidateBtn",
+    "Checkbox",
+    "Close",
+    "ConfirmUplod",
+    "Email",
+    "Empid",
+    "Empname",
+    "FullName",
+    "HeaderText",
+    "LastName",
+    "Option",
+    "PIM",
+    "RecruitmentLink",
+    "RecruitmentPageHeading",
+    "RejectButton",
+    "SaveButton",
+    "SearchButton",
+    "UploadButton",
+    "UserSearchbox",
+    "VacencyBox",
+    "applyLeaveButton",
+    "assignLeaveButton",
+    "leaveListButton",
+    "logoutMenuItem",
+    "myLeaveButton",
+    "myTimesheetButton",
+    "profilePicture",
+    "timesheetsButton"
+  ],
+  "lastUpdated": "2026-08-21T00:51:35.426Z"
+}

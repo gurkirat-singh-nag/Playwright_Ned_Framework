@@ -40,14 +40,51 @@ This agent contains no business logic. It never analyses requirements, explores 
 
 ## Workflow
 
-1. Resolve Working Directory - determine the `artifacts/<slug>/` directory for this request (see [naming.instructions.md](../instructions/naming.instructions.md)); create the directory if it does not exist.
-2. For each Skill in pipeline order (Jira Story Analyzer, Playwright Browser Exploration, Test Plan Generator, Test Case Documenter, Page Object Generator, Test Script Generator):
-   1. Check whether that Skill's declared output artifact(s) already exist in the working directory and are structurally valid.
-   2. If valid artifacts already exist, skip execution of that Skill and log the skip. Never regenerate a valid artifact.
-   3. If artifacts are missing or invalid, invoke the Skill, passing only the artifact(s) produced by the immediately preceding Skill(s) as input - never a raw external source (e.g. never pass Jira access to any Skill after the first).
-   4. After the Skill completes, verify its declared output artifact(s) now exist and are structurally valid.
-   5. If verification fails, stop the pipeline immediately and report which Skill failed and why. Do not invoke any downstream Skill.
-3. Report Completion - once all six Skills have either produced or reused valid artifacts, report the final artifact set and any open questions or blockers surfaced by individual Skills.
+### 1. Resolve Working Directory
+
+Determine the `artifacts/<slug>/` directory for this request (see [naming.instructions.md](../instructions/naming.instructions.md)); create the directory if it does not exist.
+
+### 2. Execute Skills In Strict Pipeline Order
+
+```
+Skill 1: Jira Story Analyzer          → requirements.md
+Reuse Check: Intelligent Reuse Enforcement Hook → reuse-decision.json
+Skill 2: Playwright Browser Exploration → exploration.md, screenshots/
+Skill 3: Test Plan Generator          → test-plan.md
+Skill 4: Test Case Documenter         → test-cases.md, testcases.json
+Skill 5: Page Object Generator        → pageobjects/
+Skill 6: Test Script Generator        → tests/
+```
+
+**Before Skill 2**, run the reuse check described in [02.5_intelligent-reuse-enforcement.hook.md](../hooks/02.5_intelligent-reuse-enforcement.hook.md): search `artifacts/indexes/classes/` for existing Page Object methods that already satisfy the requirements in `requirements.md`, and write the result to `artifacts/<slug>/reuse-decision.json`. This agent does not implement that search itself - it invokes `.github/capabilities/search-simplified.js` per the hook and passes the resulting decision (REUSE/PARTIAL/EXPLORE) to Skill 2, which scopes its exploration accordingly (none/selective/full).
+
+**For each Skill:**
+
+1. **Check Artifact Existence**: Check whether that Skill's declared output artifact(s) already exist in the working directory and are structurally valid.
+
+2. **Skip If Valid**: If valid artifacts already exist, skip execution of that Skill and log the skip. Never regenerate a valid artifact.
+
+3. **Invoke Skill**: If artifacts are missing or invalid, invoke the Skill, passing only the artifact(s) produced by the immediately preceding Skill(s) as input - never a raw external source (e.g. never pass Jira access to any Skill after the first). `page-object-generator` should still favor reusing an existing Page Object method over creating a duplicate when one already covers the required interaction, consistent with the reuse decision above.
+
+4. **Verify Output**: After the Skill completes, verify its declared output artifact(s) now exist and are structurally valid.
+
+5. **Stop on Failure**: If verification fails, stop the pipeline immediately and report which Skill failed and why. Do not invoke any downstream Skill.
+
+### 3. Report Completion
+
+Once all six Skills have either produced or reused valid artifacts, report the final artifact set and any open questions or blockers surfaced by individual Skills.
+
+**Completion Summary:**
+
+```
+[Pipeline Complete] Artifacts:
+  ✓ requirements.md
+  ✓ exploration.md
+  ✓ test-plan.md
+  ✓ test-cases.md / testcases.json
+  ✓ pageobjects/ (new or reused)
+  ✓ tests/
+```
 
 ## Inputs
 
