@@ -10,6 +10,10 @@ Every request is processed under a single per-request working directory, keyed b
 ```
 artifacts/<slug>/
 ├── requirements.md
+├── test-design.md
+├── test-design.json
+├── test-validation.md
+├── test-validation.json
 ├── exploration.md
 ├── screenshots/
 ├── test-plan.md

@@ -20,7 +20,13 @@ Jira Story
   ↓
 requirements.md                  (jira-story-analyzer)
   ↓
-exploration.md                   (playwright-browser-exploration)
+test-design.md / test-design.json (test-architect - technology-neutral, traceable to acceptance criteria)
+  ↓
+test-validation.md / test-validation.json (test-validator - GATE: BLOCKED stops here)
+  ↓
+reuse-decision.json              (02.5_intelligent-reuse-enforcement.hook.md - capability discovery)
+  ↓
+exploration.md                   (playwright-browser-exploration - scoped by the reuse decision)
   ↓
 test-plan.md                     (test-plan-generator)
   ↓
@@ -48,8 +54,8 @@ Every artifact is written under `artifacts/<slug>/` - see [naming.instructions.m
 | Agent | Responsibility |
 |---|---|
 | [unified-test-orchestrator](agents/unified-test-orchestrator.agent.md) | Understand requests and route to the correct specialist agent. Never generates tests. |
-| [test-generator-ui](agents/test-generator-ui.agent.md) | Coordinate the UI artifact pipeline via its six Skills. |
-| [test-generator-api](agents/test-generator-api.agent.md) | Coordinate the API artifact pipeline via reusable and future API Skills. |
+| [test-generator-ui](agents/test-generator-ui.agent.md) | Coordinate the UI artifact pipeline via its eight Skills. |
+| [test-generator-api](agents/test-generator-api.agent.md) | Coordinate the API artifact pipeline: shares `test-architect`/`test-validator`/`test-plan-generator`/`test-case-documenter` with the UI pipeline, adds `api-capability-discovery`; contract analysis/client generation/script generation are still not yet implemented. |
 | [unified-test-healer](agents/unified-test-healer.agent.md) | Diagnose and apply the smallest safe fix to failing automation. |
 | [jenkins-analyzer](agents/jenkins-analyzer.agent.md) | Investigate Jenkins builds and categorize failures. |
 | [epic-to-user-stories](agents/epic-to-user-stories.agent.md) | Decompose a Jira Epic into candidate user stories. |
@@ -58,7 +64,12 @@ Every artifact is written under `artifacts/<slug>/` - see [naming.instructions.m
 
 | Skill | Responsibility |
 |---|---|
+| [framework-discovery](skills/framework-discovery/README.md) | Repository → `artifacts/indexes/framework-profile.json` (language, UI/API framework, test runner, architecture, directories, reporting, CI, MCP). Code/repository discovery only - never launches a browser or MCP session. Invoked once per request by `unified-test-orchestrator`, before UI/API path selection. |
 | [jira-story-analyzer](skills/jira-story-analyzer/README.md) | Jira/Confluence → `requirements.md`. |
+| [test-architect](skills/test-architect/README.md) | `requirements.md` + `framework-profile.json` → `test-design.md`/`test-design.json`: technology-neutral scenarios traceable to acceptance criteria, automation/manual classification, test data, risks. Reasoning/design only - no automation code, no MCP, no deep capability matching. Runs once per request, before Test Validator. |
+| [test-validator](skills/test-validator/README.md) | `test-design.json` → `test-validation.md`/`test-validation.json`: **GATE**. Validates completeness, traceability, internal consistency, duplication, automation feasibility, technology consistency, and artifact integrity (BLOCKED stops the pipeline before capability discovery/generation). No automation code, no MCP, no deep capability matching. Shared by both `test-generator-ui` and `test-generator-api` - not duplicated per project type. |
+| [api-capability-discovery](skills/api-capability-discovery/README.md) | `test-design.json` (API/both-scoped scenarios) → `api-reuse-decision.json`: searches `artifacts/indexes/api/` for existing API clients/methods, decides FULL_REUSE/PARTIAL_REUSE/NO_REUSE per scenario. No Swagger fetch, no live API call, no MCP - only clears the way for conditional Swagger/API exploration next. API equivalent of the UI reuse-enforcement hook. |
+| [pipeline-state](skills/pipeline-state/README.md) | Shared checkpoint/resume utility (not an artifact-producing Skill) - `artifacts/<slug>/pipeline-state.json` records which of 10 pipeline stages are NOT_STARTED/IN_PROGRESS/COMPLETED/FAILED/SKIPPED/BLOCKED, so a restarted pipeline resumes at the last valid checkpoint instead of repeating expensive work (especially MCP exploration). A stage is COMPLETED only when its output artifact actually validates - re-checked on every resume, never blindly trusted. |
 | [playwright-browser-exploration](skills/playwright-browser-exploration/README.md) | `requirements.md` → `exploration.md` via Playwright MCP. |
 | [test-plan-generator](skills/test-plan-generator/README.md) | `requirements.md` + `exploration.md` → `test-plan.md`. |
 | [test-case-documenter](skills/test-case-documenter/README.md) | `test-plan.md` → `test-cases.md` + `testcases.json`. |

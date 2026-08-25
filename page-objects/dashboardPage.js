@@ -27,6 +27,18 @@ class dashboardPage{
         this.Empid = page.locator('(//input[@class="oxd-input oxd-input--active"])');
         this.Empname = page.locator('.orangehrm-edit-employee-name');
         
+        // Quick Launch widget elements (KAN-2)
+        this.applyLeaveButton = page.getByRole('button', { name: 'Apply Leave' });
+        this.assignLeaveButton = page.getByRole('button', { name: 'Assign Leave' });
+        this.leaveListButton = page.getByRole('button', { name: 'Leave List' });
+        this.timesheetsButton = page.getByRole('button', { name: 'Timesheets' });
+        this.myLeaveButton = page.getByRole('button', { name: 'My Leave' });
+        this.myTimesheetButton = page.getByRole('button', { name: 'My Timesheet' });
+        
+        // Profile menu elements (KAN-2)
+        this.profilePicture = page.getByRole('img', { name: 'profile picture' });
+        this.logoutMenuItem = page.getByRole('menuitem', { name: 'Logout' });
+        
 
 
     }
@@ -106,6 +118,44 @@ class dashboardPage{
        await this.Empid.last().type(empid)
       
       
+    }
+
+    // Quick Launch methods (KAN-2)
+    /**
+     * Click Apply Leave button in Quick Launch widget
+     */
+    async clickApplyLeave() {
+        await this.applyLeaveButton.click();
+    }
+
+    /**
+     * Click Assign Leave button in Quick Launch widget
+     */
+    async clickAssignLeave() {
+        await this.assignLeaveButton.click();
+    }
+
+    /**
+     * Open profile dropdown menu
+     */
+    async openProfileMenu() {
+        await this.profilePicture.click();
+    }
+
+    /**
+     * Click Logout from profile menu
+     * Requires: Profile menu is already open
+     */
+    async clickLogout() {
+        await this.logoutMenuItem.click();
+    }
+
+    /**
+     * Complete logout flow: open profile menu and click logout
+     */
+    async logout() {
+        await this.openProfileMenu();
+        await this.clickLogout();
     }
 
 

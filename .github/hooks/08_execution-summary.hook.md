@@ -1,0 +1,376 @@
+# Execution Summary Hook
+
+## Responsibility
+
+Generate a comprehensive execution summary report documenting the complete workflow execution, including execution time, Agents invoked, Skills executed, Hooks triggered, artifacts produced, validation results, warnings, errors, and actionable recommendations for continuous improvement.
+
+## Trigger
+
+- **Type**: Post-Hook (end of execution)
+- **Scope**: Global
+- **Execution Point**: After all Agents, Skills, and validation hooks complete, before Cleanup Hook
+
+## Executes Before
+
+- 10_cleanup.hook.md
+
+## Executes After
+
+- All Agents
+- All Skills
+- All validation hooks (01-07)
+
+## Inputs
+
+- Execution context object (collected throughout execution):
+  - Start timestamp
+  - End timestamp
+  - User request (original prompt)
+  - Orchestrator agent invoked
+  - Specialist agents invoked
+  - Skills executed
+  - Hooks triggered
+  - Artifacts produced
+  - Validation results (artifact validation, quality validation, git validation)
+  - Errors encountered
+  - Warnings logged
+  - Framework detected
+  - Repository state (branch, commit hash)
+- Summary format: `markdown` | `json` | `html` (default: markdown)
+- Summary verbosity: `detailed` | `standard` | `concise` (default: standard)
+
+## Outputs
+
+- Execution summary object:
+  - `execution_id`: Unique identifier for this execution
+  - `duration_seconds`: Total execution time
+  - `status`: success | partial_success | failure
+  - `agents_executed`: Array of agent names
+  - `skills_executed`: Array of skill names
+  - `hooks_executed`: Array of hook names
+  - `artifacts_produced`: Array of artifact paths
+  - `warnings_count`: Number of warnings
+  - `errors_count`: Number of errors
+  - `recommendations`: Array of improvement recommendations
+- Artifact: `execution-summary.md` written to `artifacts/<slug>/` or workspace root
+
+## Internal Workflow
+
+1. **Collect Execution Metadata**
+   
+   - **Execution identification**:
+     - Generate unique execution ID: `exec-<timestamp>-<random>`
+     - Record user request (sanitized, no sensitive data)
+     - Capture execution start/end timestamps
+     - Calculate total duration (in seconds)
+   
+   - **Environment context**:
+     - Operating system
+     - Node.js/Java/Python version
+     - Git branch and commit hash
+     - Detected testing framework(s)
+     - Workspace directory path
+
+2. **Summarize Agent Execution**
+   
+   - **Orchestrator**:
+     - Name: unified-test-orchestrator (or other)
+     - Invocation reason: User request analysis
+     - Routing decision: Which specialist agent selected
+   
+   - **Specialist Agents**:
+     - For each agent invoked:
+       - Agent name
+       - Invocation timestamp
+       - Completion timestamp
+       - Duration
+       - Status: success | failure
+       - Output summary (e.g., "Generated 5 test cases")
+
+3. **Summarize Skill Execution**
+   
+   - For each Skill executed:
+     - Skill name
+     - Invoked by: Agent name
+     - Execution order: 1st, 2nd, 3rd...
+     - Start/end timestamp
+     - Duration
+     - Status: success | failure | skipped
+     - Inputs consumed (artifact paths)
+     - Outputs produced (artifact paths)
+     - Key metrics (if applicable):
+       - **jira-story-analyzer**: Acceptance criteria count, out-of-scope items
+       - **playwright-browser-exploration**: Pages discovered, elements cataloged
+       - **test-plan-generator**: Test scenarios planned, coverage areas
+       - **test-case-documenter**: Test cases generated
+       - **page-object-generator**: Page Objects created
+       - **test-script-generator**: Test specs created
+
+4. **Summarize Hook Execution**
+   
+   - For each Hook triggered:
+     - Hook name
+     - Trigger point: Pre-hook or Post-hook
+     - Execution timestamp
+     - Duration
+     - Status: success | warning | failure
+     - Key findings:
+       - **Repository Sync**: Sync status, commits pulled
+       - **Workspace Validation**: Validation result, missing components
+       - **Framework Discovery**: Frameworks detected
+       - **Duplicate Detection**: Duplicates found, reuse recommendations
+       - **Artifact Validation**: Validation result, completeness score
+       - **Output Quality Validation**: Quality score, violations
+       - **Git Validation**: Commit readiness, blockers
+
+5. **Summarize Artifacts Produced**
+   
+   - Categorize artifacts:
+     - **Requirements artifacts**: requirements.md
+     - **Exploration artifacts**: exploration.md, api-exploration.md
+     - **Planning artifacts**: test-plan.md
+     - **Test case artifacts**: test-cases.md, testcases.json
+     - **Code artifacts**: Page Objects, API clients, test specs, utilities
+     - **Validation artifacts**: framework-analysis.md, quality-report.md, pre-commit-validation.md
+   
+   - For each artifact:
+     - Artifact name
+     - File path (relative to workspace)
+     - File size
+     - Lines of code (for code artifacts)
+     - Generated by: Skill name
+     - Validation status: passed | failed | not validated
+
+6. **Summarize Warnings**
+   
+   - Collect all warnings from execution context
+   - Categorize warnings:
+     - **Repository warnings**: Uncommitted changes, no upstream branch
+     - **Workspace warnings**: Missing optional components
+     - **Framework warnings**: Outdated versions, missing dependencies
+     - **Duplicate warnings**: Similar artifacts found
+     - **Artifact warnings**: Placeholder content, missing optional sections
+     - **Quality warnings**: Code smells, linting warnings, suboptimal patterns
+     - **Git warnings**: Large commit, committing to protected branch
+   
+   - For each warning:
+     - Source: Hook or Skill that raised warning
+     - Severity: INFO | WARN
+     - Message
+     - Recommendation (if applicable)
+
+7. **Summarize Errors**
+   
+   - Collect all errors from execution context
+   - Categorize errors:
+     - **Execution errors**: Agent/Skill failures
+     - **Validation errors**: Artifact validation failures, quality failures
+     - **Tool errors**: ESLint, TypeScript compiler, test execution errors
+     - **Infrastructure errors**: Git failures, file I/O errors
+   
+   - For each error:
+     - Source: Component that raised error
+     - Severity: CRITICAL
+     - Error message
+     - Stack trace (if applicable)
+     - Remediation guidance
+
+8. **Generate Recommendations**
+   
+   **Based on execution analysis**:
+   - **Performance recommendations**:
+     - If total duration > 5 minutes: "Consider incremental execution mode"
+     - If test execution > 50% of total time: "Optimize test execution (parallel, selective)"
+   
+   - **Quality recommendations**:
+     - If quality score <70%: "Review and refactor generated code for quality improvements"
+     - If linting warnings >10: "Address linting warnings to improve maintainability"
+   
+   - **Process recommendations**:
+     - If duplicate detection found matches: "Reuse existing artifacts to reduce duplication"
+     - If artifacts recreated unnecessarily: "Enable artifact caching to avoid regeneration"
+   
+   - **Framework recommendations**:
+     - If outdated framework version: "Update <framework> to latest stable version"
+     - If multiple UI frameworks detected: "Consolidate to single UI framework to reduce complexity"
+   
+   - **Repository recommendations**:
+     - If commits behind remote: "Pull latest changes before next execution"
+     - If large commit: "Split commit into smaller logical units"
+
+9. **Compute Execution Status**
+   
+   - **success**: All Agents/Skills completed successfully, no critical errors, artifacts validated
+   - **partial_success**: Execution completed with warnings or non-critical errors
+   - **failure**: Critical errors occurred, execution incomplete, blockers present
+
+10. **Generate Execution Summary Report**
+    
+    Write `execution-summary.md`:
+    ```markdown
+    # Execution Summary
+    
+    **Execution ID**: exec-20260806-143022-a7b3
+    **Date**: August 6, 2026, 2:30:22 PM UTC
+    **Duration**: 3m 45s
+    **Status**: ✓ Success
+    
+    ## Request
+    Generate UI automation for Jira story PROJ-1234
+    
+    ## Execution Flow
+    1. unified-test-orchestrator (5s) ✓
+    2. test-generator-ui (3m 35s) ✓
+       - jira-story-analyzer (45s) ✓
+       - playwright-browser-exploration (1m 20s) ✓
+       - test-plan-generator (30s) ✓
+       - test-case-documenter (25s) ✓
+       - page-object-generator (35s) ✓
+       - test-script-generator (40s) ✓
+    3. Hooks executed: 8/10 ✓
+    
+    ## Artifacts Produced
+    
+    ### Requirements & Planning (3)
+    - [requirements.md](artifacts/proj-1234-login/requirements.md) (5.2 KB)
+    - [exploration.md](artifacts/proj-1234-login/exploration.md) (12.1 KB)
+    - [test-plan.md](artifacts/proj-1234-login/test-plan.md) (8.3 KB)
+    
+    ### Test Cases (2)
+    - [test-cases.md](artifacts/proj-1234-login/test-cases.md) (15.7 KB)
+    - [testcases.json](artifacts/proj-1234-login/testcases.json) (3.4 KB) - 12 test cases
+    
+    ### Code Artifacts (6)
+    - [LoginPage.ts](artifacts/proj-1234-login/pageobjects/LoginPage.ts) (245 LOC) ✓
+    - [DashboardPage.ts](artifacts/proj-1234-login/pageobjects/DashboardPage.ts) (189 LOC) ✓
+    - [login-valid-credentials.spec.ts](artifacts/proj-1234-login/tests/login-valid-credentials.spec.ts) (87 LOC) ✓
+    - [login-invalid-credentials.spec.ts](artifacts/proj-1234-login/tests/login-invalid-credentials.spec.ts) (92 LOC) ✓
+    - [login-password-reset.spec.ts](artifacts/proj-1234-login/tests/login-password-reset.spec.ts) (103 LOC) ✓
+    - [login-account-lockout.spec.ts](artifacts/proj-1234-login/tests/login-account-lockout.spec.ts) (78 LOC) ✓
+    
+    ### Validation Reports (3)
+    - framework-analysis.md (2.1 KB)
+    - quality-report.md (4.5 KB) - Quality Score: 87%
+    - pre-commit-validation.md (3.2 KB)
+    
+    ## Validation Results
+    - ✓ Artifact Validation: Passed (100% completeness)
+    - ✓ Output Quality: Passed (87% quality score)
+    - ✓ Git Validation: Passed (commit ready)
+    
+    ## Warnings (3)
+    - ⚠ Playwright version outdated: v1.38.0 → v1.40.0 available
+    - ⚠ Linting warning: Unused import in DashboardPage.ts:line 12
+    - ⚠ Large commit: 9 files changed
+    
+    ## Errors
+    None
+    
+    ## Recommendations
+    1. Update Playwright to latest stable version (v1.40.0)
+    2. Remove unused import from DashboardPage.ts
+    3. Run `npm test` to verify all tests pass before committing
+    
+    ## Metrics
+    - Total execution time: 3m 45s
+    - Agents executed: 2
+    - Skills executed: 6
+    - Hooks executed: 8
+    - Artifacts produced: 14
+    - Lines of code generated: 794
+    - Test cases generated: 12
+    - Quality score: 87%
+    
+    ## Environment
+    - OS: Windows 11
+    - Node.js: v20.10.0
+    - Playwright: v1.38.0
+    - Git branch: feature/proj-1234-login
+    - Commit: a7b3c9d2
+    ```
+
+11. **Persist Execution Summary**
+    - Write `execution-summary.md` to `artifacts/<slug>/`
+    - Also write to workspace root for quick access
+    - If JSON format requested: Write `execution-summary.json`
+    - If HTML format requested: Write `execution-summary.html` with styling
+
+12. **Return Execution Summary Object**
+    - Populate execution summary object
+    - Make available to Cleanup Hook and user
+
+## Validation Rules
+
+No validation rules - this hook only generates summary, does not validate.
+
+## Failure Behaviour
+
+| Failure Scenario | Action |
+|------------------|--------|
+| Summary write failure | WARN, log error, execution continues (in-memory summary still available) |
+| Execution context incomplete | WARN, generate partial summary with available data |
+| Timestamp calculation error | Use fallback timestamps, log warning |
+
+No scenario results in execution STOP. Summary generation is best-effort.
+
+## Retry Behaviour
+
+- **File write**: Retry once after 500ms delay on file lock
+- **Summary generation**: No retry (generation errors are logged, partial summary produced)
+
+## Logging
+
+**Start**:
+```
+[Execution Summary] Generating execution summary...
+[Execution Summary] Collecting execution metadata...
+```
+
+**During**:
+```
+[Execution Summary] Summarizing agent execution...
+[Execution Summary] Summarizing artifact production...
+[Execution Summary] Computing recommendations...
+```
+
+**Success**:
+```
+[Execution Summary] ✓ Summary generated
+[Execution Summary] ✓ Duration: 3m 45s
+[Execution Summary] ✓ Status: Success
+[Execution Summary] ✓ Artifacts produced: 14
+[Execution Summary] ✓ execution-summary.md written
+```
+
+**Warning**:
+```
+[Execution Summary] ⚠ Execution context incomplete, generating partial summary
+[Execution Summary] ⚠ Failed to write summary to file, in-memory summary available
+```
+
+## Success Criteria
+
+- Execution metadata collected
+- Execution summary object populated
+- Execution summary report generated (if writable)
+- No uncaught exceptions during summary generation
+
+## Future Extensions
+
+- **Interactive HTML report**: Generate interactive HTML dashboard with charts and drill-down
+- **Execution comparison**: Compare current execution against historical executions
+- **Trend analysis**: Track metrics over time (execution duration, quality score, artifact count)
+- **Cost calculation**: Estimate execution cost (API calls, compute time)
+- **Team dashboard**: Aggregate execution summaries across team for visibility
+- **Slack/Teams notification**: Send summary notification to team channel
+- **Email report**: Email summary to stakeholders
+- **CI/CD integration**: Publish summary as build artifact in Jenkins/GitHub Actions
+- **Execution replay**: Allow re-execution from summary (with same parameters)
+- **Execution audit trail**: Maintain immutable log of all executions for compliance
+- **Performance profiling**: Include detailed profiling data (time per function, memory usage)
+- **Dependency graph visualization**: Visualize Agent → Skill → Artifact flow
+- **Execution analytics**: Track success rate, most common errors, bottlenecks
+- **Custom summary templates**: Allow teams to define custom summary formats
+- **Multi-format export**: Export summary to PDF, Word, Confluence page
+- **Version control integration**: Commit summary alongside generated artifacts
+- **Artifact lineage**: Track provenance of each artifact (source requirements, generation timestamp)

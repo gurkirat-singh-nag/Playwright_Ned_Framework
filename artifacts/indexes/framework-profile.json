@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "generatedAt": "2026-08-21T08:37:47.153Z",
+  "signature": "b1c3a382e7a31f56d2895b812431459e70ff4a997374bad920f174802e2cba7a",
+  "language": "JavaScript",
+  "uiFramework": "Playwright",
+  "apiFramework": "unknown",
+  "testRunner": "Playwright Test",
+  "architecture": {
+    "ui": "Page Object Model",
+    "api": "unknown"
+  },
+  "packageManager": "npm",
+  "reporting": [
+    "Allure",
+    "Playwright HTML",
+    "line"
+  ],
+  "ci": [
+    "GitHub Actions"
+  ],
+  "mcp": [
+    "Playwright MCP",
+    "Atlassian MCP"
+  ],
+  "directories": {
+    "pageObjects": "page-objects/",
+    "tests": "tests/",
+    "apiClients": "unknown",
+    "utilities": "utils/",
+    "testData": "utils/testDataUtils.json",
+    "fixtures": "unknown",
+    "configuration": "playwright.config.js",
+    "hooks": ".github/hooks/",
+    "skills": ".github/skills/",
+    "agents": ".github/agents/",
+    "workflows": ".github/workflows/",
+    "capabilityIndex": "artifacts/indexes/"
+  }
+}

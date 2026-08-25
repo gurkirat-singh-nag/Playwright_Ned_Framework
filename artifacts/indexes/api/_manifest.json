@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "mode": "api-classes-only",
+  "description": "Lightweight API client index - one file per actual API client class, no business-capability abstraction layer",
+  "generatedAt": "2026-08-21T07:16:07.500Z",
+  "classes": {},
+  "statistics": {
+    "totalClasses": 0,
+    "totalMethods": 0
+  },
+  "note": "No API automation implementation found in this repository at generation time. This is an honest empty index, not a placeholder - see api-capability-discovery/README.md."
+}

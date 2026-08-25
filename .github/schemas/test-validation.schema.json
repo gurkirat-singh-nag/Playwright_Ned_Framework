@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://qatalyst-replica.local/schemas/test-validation.schema.json",
+  "title": "Test Validation",
+  "description": "Machine-readable validation result (test-validation.json) produced by the Test Validator Skill, gating whether a test-design.json is safe to pass to capability discovery / automation generation.",
+  "type": "object",
+  "required": ["storyId", "generatedFrom", "status", "summary", "acceptanceCriteria", "scenarios", "issues"],
+  "additionalProperties": false,
+  "properties": {
+    "storyId": { "type": "string" },
+    "generatedFrom": {
+      "type": "object",
+      "required": ["testDesign"],
+      "additionalProperties": false,
+      "properties": {
+        "testDesign": { "type": "string", "const": "test-design.json" }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PASS", "PASS_WITH_WARNINGS", "BLOCKED"]
+    },
+    "summary": {
+      "type": "object",
+      "required": ["blockers", "warnings", "info"],
+      "additionalProperties": false,
+      "properties": {
+        "blockers": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 },
+        "info": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "acceptanceCriteria": {
+      "type": "object",
+      "required": ["total", "covered", "partial", "uncovered"],
+      "additionalProperties": false,
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "covered": { "type": "integer", "minimum": 0 },
+        "partial": { "type": "integer", "minimum": 0 },
+        "uncovered": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "scenarios": {
+      "type": "object",
+      "required": ["total", "valid", "duplicates", "blocked"],
+      "additionalProperties": false,
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "valid": { "type": "integer", "minimum": 0 },
+        "duplicates": { "type": "integer", "minimum": 0 },
+        "blocked": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "category", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "severity": { "type": "string", "enum": ["BLOCKER", "WARNING", "INFO"] },
+          "category": {
+            "type": "string",
+            "enum": [
+              "artifact-integrity", "acceptance-criteria-coverage", "scenario-quality",
+              "duplicate", "test-data", "automation-feasibility", "technology-consistency",
+              "requirement-consistency", "existing-automation-awareness", "risk-review"
+            ]
+          },
+          "scenarioId": { "type": "string", "pattern": "^SC-[0-9]{3,}$" },
+          "acceptanceCriteria": { "type": "string", "pattern": "^AC-[0-9]+$" },
+          "file": { "type": "string" },
+          "description": { "type": "string" },
+          "recommendation": { "type": "string" }
+        }
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -12,6 +12,10 @@ Every request is processed under a single per-request working directory, keyed b
 ```
 artifacts/<slug>/
 ├── requirements.md
+├── test-design.md
+├── test-design.json
+├── test-validation.md
+├── test-validation.json
 ├── exploration.md
 ├── screenshots/
 ├── test-plan.md
@@ -28,7 +32,8 @@ artifacts/<slug>/
 
 ## Identifiers
 
-- Scenario ID: `SC-###` (e.g. `SC-014`), assigned once in `test-plan.md`, never reused for a different scenario.
+- Acceptance Criterion ID: `AC-#` (e.g. `AC-3`), reused from `requirements.md` when already numbered there, or assigned in that order by Test Architect when the source is unnumbered prose.
+- Scenario ID: `SC-###` (e.g. `SC-014`), assigned once in `test-design.md`/`test-design.json` by Test Architect, carried through unchanged into `test-plan.md`, never reused for a different scenario.
 - Test Case ID: `TC-###` (e.g. `TC-101`), assigned once in `test-cases.md` / `testcases.json`, and referenced in generated spec titles.
 
 ## Page Objects
