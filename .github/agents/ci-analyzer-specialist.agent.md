@@ -1,5 +1,5 @@
 ---
-name: ado-analyzer
+name: ci-analyzer-specialist
 
 description: |
   Investigate Azure DevOps (ADO) CI pipeline build results, parse pipeline
@@ -24,7 +24,7 @@ user-invocable: true
 
 disable-model-invocation: false
 ---
-# ADO Analyzer
+# CI Analyzer Specialist
 
 ## Responsibility
 

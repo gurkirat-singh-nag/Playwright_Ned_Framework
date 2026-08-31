@@ -27,7 +27,7 @@ user-invocable: true
 disable-model-invocation: false
 
 agents:
-  - ado-analyzer
+  - ci-analyzer-specialist
 ---
 # Automation Healer Specialist
 
@@ -56,7 +56,7 @@ Diagnose why existing automation is failing and apply the smallest safe fix, wit
 
 ## Skills Used
 
-None directly. Reuses the target repository's existing Page Objects and automation conventions, and delegates CI evidence gathering to the ado-analyzer agent.
+None directly. Reuses the target repository's existing Page Objects and automation conventions, and delegates CI evidence gathering to the ci-analyzer-specialist agent.
 
 ## Success Criteria
 

@@ -35,7 +35,7 @@ agents:
   - ui-automation-specialist
   - api-automation-specialist
   - automation-healer-specialist
-  - ado-analyzer
+  - ci-analyzer-specialist
   - epic-to-user-stories
 
 handoffs:
@@ -55,7 +55,7 @@ handoffs:
     send: false
 
   - label: Analyze ADO Build
-    agent: ado-analyzer
+    agent: ci-analyzer-specialist
     prompt: Analyze the latest Azure DevOps pipeline results
     send: false
 
@@ -105,7 +105,7 @@ Downstream, once delegated (owned by `ui-automation-specialist`/`api-automation-
 
 - framework-discovery - invoked directly by this agent, once per request (reusing the cached profile whenever it is still current).
 
-Beyond that, none directly. This agent delegates to specialist Agents (ui-automation-specialist, api-automation-specialist, automation-healer-specialist, ado-analyzer, epic-to-user-stories), which in turn invoke their own Skills.
+Beyond that, none directly. This agent delegates to specialist Agents (ui-automation-specialist, api-automation-specialist, automation-healer-specialist, ci-analyzer-specialist, epic-to-user-stories), which in turn invoke their own Skills.
 
 ## Success Criteria
 

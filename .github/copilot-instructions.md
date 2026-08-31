@@ -57,7 +57,7 @@ Every artifact is written under `artifacts/<slug>/` - see [naming.instructions.m
 | [ui-automation-specialist](agents/ui-automation-specialist.agent.md) | Coordinate the UI artifact pipeline via its eight Skills. |
 | [api-automation-specialist](agents/api-automation-specialist.agent.md) | Coordinate the API artifact pipeline: shares `test-architect`/`test-validator`/`test-plan-generator`/`test-case-documenter` with the UI pipeline, adds `api-capability-discovery`, `api-contract-analyzer`, `api-client-generator`, `api-test-script-generator`. |
 | [automation-healer-specialist](agents/automation-healer-specialist.agent.md) | Diagnose and apply the smallest safe fix to failing automation. |
-| [ado-analyzer](agents/ado-analyzer.agent.md) | Investigate Azure DevOps (ADO) pipeline builds and categorize failures. |
+| [ci-analyzer-specialist](agents/ci-analyzer-specialist.agent.md) | Investigate Azure DevOps (ADO) pipeline builds and categorize failures. |
 | [epic-to-user-stories](agents/epic-to-user-stories.agent.md) | Decompose a Jira Epic into candidate user stories. |
 
 ## Skill Responsibilities
