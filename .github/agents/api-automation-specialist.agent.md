@@ -38,7 +38,7 @@ Coordinate the full API test lifecycle - requirements, test design, test design 
 2. Generate Requirements - invoke the Jira Story Analyzer Skill when the input is a Jira story.
 3. Design Tests - invoke the **Test Architect** Skill (reused as-is from the UI pipeline, not duplicated - see [test-architect/README.md](../skills/test-architect/README.md)): `requirements.md` + `framework-profile.json` → `test-design.md`/`test-design.json`. Scenarios are classified `technology: "API"`/`"both"`/`"UI"`/`"integration"`/`"manual-only"`; only `"API"`/`"both"` scenarios are this agent's concern from here on.
 4. Validate Test Design - invoke the **Test Validator** Skill (reused as-is, not duplicated - see [test-validator/README.md](../skills/test-validator/README.md)): `test-design.json` → `test-validation.md`/`test-validation.json`. **GATE**: `status: BLOCKED` stops the pipeline immediately - do not proceed to API Capability Discovery or generation. `PASS_WITH_WARNINGS` continues, carrying warnings forward.
-5. API Capability Discovery - invoke the **API Capability Discovery** Skill (see [api-capability-discovery/README.md](../skills/api-capability-discovery/README.md), only reached if Step 4 did not block): search `artifacts/indexes/api/` for existing API clients/methods that already satisfy each API-scoped scenario's operations, and write `artifacts/<slug>/api-reuse-decision.json`. Per scenario: `FULL_REUSE` → skip Step 6 entirely for that scenario, generate directly from the existing method(s); `PARTIAL_REUSE` → scope Step 6 to only the `missing[]` operations; `NO_REUSE` → Step 6 proceeds in full.
+5. API Capability Discovery - invoke the **API Capability Discovery** Skill (see [api-capability-discovery/README.md](../skills/api-capability-discovery/README.md), only reached if Step 4 did not block): search colocated `*.index.json` files (next to each client class in `clients/`, `api/`, or `services/`) for existing API clients/methods that already satisfy each API-scoped scenario's operations, and write `artifacts/<slug>/api-reuse-decision.json`. Per scenario: `FULL_REUSE` → skip Step 6 entirely for that scenario, generate directly from the existing method(s); `PARTIAL_REUSE` → scope Step 6 to only the `missing[]` operations; `NO_REUSE` → Step 6 proceeds in full.
 6. Analyse API Contract - invoke the **API Contract Analyzer** Skill (see [api-contract-analyzer/README.md](../skills/api-contract-analyzer/README.md)): Swagger/OpenAPI parsing or requirements-text contract extraction (endpoint behaviour, schemas, authentication), scoped by Step 5's decision as above, producing `api-exploration.md`.
 7. Generate Test Plan - invoke the Test Plan Generator Skill (reused, shared with the UI pipeline).
 8. Generate Manual Test Cases - invoke the Test Case Documenter Skill (reused, shared with the UI pipeline).
@@ -63,7 +63,7 @@ At Step 1, if `artifacts/<slug>/pipeline-state.json` exists, call `resumePlan(sl
 - `api-exploration.md`
 - `test-plan.md`
 - `test-cases.md` and `testcases.json`
-- `clients/`
+- `clients/` (plus a colocated `.index.json` per client class)
 - `tests/`
 
 ## Skills Used

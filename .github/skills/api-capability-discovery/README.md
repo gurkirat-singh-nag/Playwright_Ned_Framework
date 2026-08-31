@@ -2,13 +2,13 @@
 
 ## Purpose
 
-The API equivalent of the UI reuse layer built in Prompt 1 (`.github/capabilities/`): **before Swagger/OpenAPI analysis or live API exploration, search the existing API automation framework** for reusable clients, methods, request/payload builders, and validators. Same principle, same "index is generated metadata, never the source of truth" contract, same three-way decision shape - just pointed at API clients instead of UI Page Objects.
+The API equivalent of the UI reuse layer (`.github/capabilities/`): **before Swagger/OpenAPI analysis or live API exploration, search the existing API automation framework** for reusable clients, methods, request/payload builders, and validators. Same principle, same three-way decision shape - just pointed at API clients instead of UI Page Objects. Index files are hand-authored (or AI-assisted), colocated with the client class they describe - see Index Authorship below - which is what makes this Skill work for any language (Java/RestAssured, JS/Supertest, Python, ...), not just JavaScript.
 
 ## Repository State At The Time This Was Built
 
 **This repository currently has no API automation of any kind.** Verified before writing anything: no `axios`/`supertest`/`rest-assured` dependency in `package.json`, no `api/`/`clients/`/`services/` directory, no `*ApiClient`/`*Client`/`*Api` source file anywhere, no API-specific instructions file, `framework-profile.json` already reports `apiFramework: "unknown"` and `architecture.api: "unknown"`.
 
-This Skill is therefore built to work correctly *the moment* a developer adds a real API client - it is not built around, and does not pretend to have found, capabilities that don't exist. Running `generator.js` today correctly produces an empty `artifacts/indexes/api/_manifest.json` with an explicit `note` field saying so, not a fabricated example.
+This Skill is therefore built to work correctly *the moment* a developer adds a real API client - it is not built around, and does not pretend to have found, capabilities that don't exist. With zero `*.index.json` files present, `ApiIndexSearch` correctly loads zero classes and every scenario falls through to `NO_REUSE`, not a fabricated match.
 
 ## Position In The Pipeline
 
@@ -41,25 +41,28 @@ Runs once per request, inside `api-automation-specialist` (see [api-automation-s
 ## Inputs
 
 - `artifacts/<slug>/test-design.json` (primary - each scenario's `steps` become the required operations to search for; scenarios with `technology: "API"` or `"both"` are in scope, `"UI"`-only scenarios are not)
-- `artifacts/indexes/api/*.json` and `_manifest.json` (the index this Skill searches)
+- `<clients|api|services>/*.index.json` (the index this Skill searches - whichever of those three directories the target repository uses for its API client classes)
 - `artifacts/<slug>/requirements.md`, for any explicit endpoint/HTTP-method evidence not captured in `test-design.json`
 
 ## Outputs
 
 - `artifacts/<slug>/api-reuse-decision.json` - per-scenario `FULL_REUSE`/`PARTIAL_REUSE`/`NO_REUSE` with evidence, in the same `artifacts/<slug>/` directory as every other pipeline artifact.
-- `artifacts/indexes/api/*.json` + `_manifest.json` - regenerated if stale, same lifecycle as the UI class index.
 
-## API Index (`artifacts/indexes/api/`)
+This Skill only reads the index - it never writes or updates `*.index.json` files itself; that is `api-client-generator`'s job when it creates a class, or a manual/AI-assisted edit when retrofitting existing code (see Index Authorship below).
 
-Exactly the same shape decision as the UI class index - no business-capability abstraction, no `capabilities/login.json`/`create.json`/`search.json` files. One JSON file per actual API client class:
+## API Index (colocated `*.index.json` files)
+
+Same shape decision as the UI class index - no business-capability abstraction, no `capabilities/login.json`/`create.json`/`search.json` files. One JSON file per actual API client class, next to the class it describes:
 
 ```
-artifacts/indexes/api/
-├── _manifest.json
-└── <ClassName>.json        (one per real API client class found in source)
+clients/                          (or api/, or services/ - whichever the project uses)
+├── CustomerApiClient.java
+├── CustomerApiClient.index.json
+├── OrderApiClient.js
+└── OrderApiClient.index.json
 ```
 
-Each class file: `className`, `file` (source path), `methods[]` - each with `name`, `params`, `async`, `description` (from JSDoc when present, else derived from the name), `httpMethod` (GET/POST/PUT/PATCH/DELETE, extracted from the method body when determinable, else `null`), `endpoint` (extracted literal path/URL when determinable, else `null`), `authenticationHint` (a matched keyword like "Authorization"/"Bearer" when present in the method body, else `null`). No inferred business capability is ever added - see the example below.
+Each index file: `className`, `file` (source path), `methods[]` - each with `name`, `params`, `description`, `httpMethod` (GET/POST/PUT/PATCH/DELETE, when known), `endpoint` (the literal path, when known). No inferred business capability is ever added - see the example below.
 
 **Worked example** (from your prompt, showing what the index would capture *if* this class existed - it does not exist in this repository today):
 
@@ -68,22 +71,15 @@ Each class file: `className`, `file` (source path), `methods[]` - each with `nam
 getCustomer(String customerId)
 createCustomer(CustomerRequest request)
 ```
-→ `artifacts/indexes/api/CustomerApi.json` would record exactly those two methods, their parameters, and (if determinable from the body) HTTP verb/endpoint - never a derived `customer-management.json` or `search.json`.
+→ `CustomerApi.index.json`, colocated with `CustomerApi.java`, would record exactly those two methods and their parameters - never a derived `customer-management.json` or `search.json`.
 
-### Generation (`generator.js`)
+### Index Authorship
 
-Deterministic, mirrors [.github/capabilities/generator.js](../../capabilities/generator.js)'s brace-depth method-parsing technique exactly (reused, not reimplemented differently). Scans `api/`, `clients/`, `services/` (the same target-type search strategy already documented, but never implemented, in [04_duplicate-detection.hook.md](../../hooks/04_duplicate-detection.hook.md)'s "api-client" search) plus root-level `*ApiClient.js`/`*Client.js`/`*Api.js` files. Regenerating always reflects current source - a removed method disappears from the index on the next run; nothing accumulates.
-
-```bash
-node .github/skills/api-capability-discovery/generator.js            # regenerate
-node .github/skills/api-capability-discovery/generator.js --summary   # report only, no write
-```
-
-Currently parses JavaScript only (this repository is JavaScript-only per `framework-profile.json` - RestAssured/Java parsing was deliberately not built without evidence it's needed here; see Limitations).
+No generator script, no parser, nothing to run. An index file is written by hand (or with AI assistance) in the same change that creates or modifies its client class - the same discipline as updating a test alongside the code it covers. This is a deliberate simplification: an earlier version of this Skill mechanically parsed source to build the index, but that parser only ever understood JavaScript (see `git log` for that history if needed) - it could never support a RestAssured/Java-only project, which is the exact case this scaffold needs to serve. Manual/AI authorship works identically regardless of source language, at the cost of the index being able to drift from source if a change forgets to update it - see Index Accuracy in [02.5_intelligent-reuse-enforcement.hook.md](../../hooks/02.5_intelligent-reuse-enforcement.hook.md).
 
 ### Search & Decision (`search.js`)
 
-`ApiIndexSearch` - `searchClasses(query)`, `searchMethods(query)`, `verifyMethodsInSource(className, methods)`, and the decision function:
+`ApiIndexSearch` - `searchClasses(query)`, `searchMethods(query)`, and the decision function:
 
 ```javascript
 const { ApiIndexSearch } = require('./.github/skills/api-capability-discovery/search.js');
@@ -122,18 +118,14 @@ Confidence bar for `FULL_REUSE`/`PARTIAL_REUSE` is 75 (vs. 60 for the UI class i
 
 - Must NOT launch Playwright MCP, open a browser, take a screenshot, or perform live API exploration itself - it only decides whether those are needed next; the actual exploration stays `api-contract-analyzer`'s job (see [api-contract-analyzer/README.md](../api-contract-analyzer/README.md)).
 - Must NOT fetch a Swagger/OpenAPI document merely because a URL for one exists, when the existing implementation already fully satisfies the requirement.
-- Must NOT create a business-capability abstraction layer (`capabilities/login.json`, `capabilities/create.json`, etc.) - one file per real source class only, exactly like the UI class index.
+- Must NOT create a business-capability abstraction layer (`capabilities/login.json`, `capabilities/create.json`, etc.) - one file per real client class only, exactly like the UI class index.
 - Must NOT duplicate Test Architect or Test Validator - both are invoked as-is; this Skill only adds the reuse-decision step between them and generation.
 - Must NOT claim reuse from method-name similarity alone - see No False Positives.
-- Must NOT build an append-only index - `generator.js` rebuilds the whole `artifacts/indexes/api/` directory from current source on every run, exactly like the UI generator.
-
-## Index Synchronization
-
-Identical contract to the UI class index: the index is generated metadata, never the source of truth. A method added to a real API client appears on the next `generator.js` run; a method removed or a change reverted disappears on the next run - nothing is retained once its source is gone.
+- Must NOT write or modify `*.index.json` files itself - it is a read-only consumer of the index (see Index Authorship above).
 
 ## Git / Artifacts
 
-`artifacts/indexes/` (including the new `api/` subdirectory) is already excepted from the `artifacts/*` ignore rule fixed in an earlier prompt - `.gitignore` was not modified for this task; the existing exception already covers it structurally (`!artifacts/indexes/` un-ignores the whole `indexes/` tree, and nothing re-excludes `api/` the way `indexes/capabilities/` is deliberately re-excluded). Verified via `git check-ignore`, not assumed.
+Index files live next to the client classes they describe (`clients/`, `api/`, or `services/`), tracked in git exactly like the source itself - no separate `artifacts/indexes/` location or `.gitignore` exception needed for them.
 
 ## Integration With The API Agent
 
@@ -156,6 +148,5 @@ See [api-automation-specialist.agent.md](../../agents/api-automation-specialist.
 
 ## Limitations
 
-- Parses JavaScript source only - no Java/RestAssured, C#, or Python parsing was built, because no evidence in this repository calls for it (see "Repository State" above). Extending `generator.js` to another language is future work if/when this repository (or another using this scaffold) actually has such source to index.
-- HTTP-method/endpoint extraction is a body-text regex heuristic (`.get('/path')` style calls) - it will miss endpoints built from string concatenation/template interpolation or configured outside the method body (e.g. a shared base client). Falls back to `null`, never a guessed value.
-- Confidence scoring is still keyword/verb-family based, not a full NLP match - the same class of limitation already disclosed for the UI class index in Prompt 1.
+- The index can drift from source: nothing detects a renamed/removed method whose `.index.json` wasn't updated in the same change. This is the deliberate trade-off of manual/AI authorship over a mechanical parser - see Index Authorship above.
+- Confidence scoring is keyword/verb-family based, not a full NLP match - a genuinely reusable method with very different wording from the requirement may score below the confidence bar and be missed.

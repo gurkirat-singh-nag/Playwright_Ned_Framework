@@ -12,6 +12,7 @@ Generate reusable Page Objects for the target automation framework using locator
 ## Outputs
 
 - `page-objects/`
+- `page-objects/<className>.index.json` for each Page Object this Skill creates or modifies
 
 ## Artifacts Produced
 
@@ -27,7 +28,7 @@ Generate reusable Page Objects for the target automation framework using locator
 2. For each required page, check whether a matching Page Object already exists in the project's `page-objects/` folder; if so, reuse it.
 3. For each page without an existing Page Object, generate one using the locator strategy priority documented in `exploration.md`: `getByRole`/`getByPlaceholder`/`getByLabel` > `data-testid` > stable `id` > other.
 4. Update each test case's `requiredPageObjects` field in `testcases.json` to reflect the Page Object(s) it depends on.
-5. Write `page-objects/`.
+5. Write `page-objects/`, and write or update the matching `page-objects/<className>.index.json` for every Page Object created or modified in this run - see [page-object.instructions.md](../../instructions/page-object.instructions.md). This Skill already knows exactly which methods it just wrote, so authoring the index entry here costs nothing extra and needs no source parsing.
 
 ## Failure Handling
 

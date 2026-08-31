@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * Class Index Search (Simplified Architecture v3.0)
+ * Class Index Search (Simplified Architecture v4.0 - manually maintained)
  *
- * Direct Page Object class/method search against artifacts/indexes/classes/ -
- * no business-capability abstraction layer. This is the reuse knowledge base
- * consulted before launching Playwright MCP browser exploration.
+ * Direct Page Object class/method search against *.index.json files colocated with
+ * their Page Object in page-objects/ - no business-capability abstraction layer, no
+ * generated manifest, no source parser. Index files are authored/updated by hand (or
+ * with AI assistance) alongside the Page Object they describe - see
+ * page-object.instructions.md. Keeping an index entry in sync with its Page Object is
+ * the same discipline as keeping a test in sync with the code it covers; no separate
+ * generation or verification step exists for it.
  *
  * CLI usage:
  *   node .github/capabilities/search-simplified.js "login"
@@ -17,8 +21,7 @@ const fs = require('fs');
 const path = require('path');
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../..');
-const INDEXES_DIR = path.join(WORKSPACE_ROOT, 'artifacts', 'indexes');
-const MANIFEST_PATH = path.join(INDEXES_DIR, '_manifest.json');
+const PAGE_OBJECTS_DIR = path.join(WORKSPACE_ROOT, 'page-objects');
 
 function tokenize(text) {
   // Split camelCase BEFORE lowercasing - [a-z0-9][A-Z] never matches on already-lowercased
@@ -40,25 +43,23 @@ function scoreOverlap(queryTokens, candidateTokens) {
 class ClassIndexSearch {
   constructor({ verbose = false } = {}) {
     this.verbose = verbose;
-
-    if (!fs.existsSync(MANIFEST_PATH)) {
-      throw new Error(`Class index manifest not found at ${MANIFEST_PATH}. Run: node .github/capabilities/generator.js`);
-    }
-
-    this.manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf-8'));
     this.classes = {};
 
-    for (const className of Object.keys(this.manifest.classes || {})) {
-      const classFile = path.join(INDEXES_DIR, this.manifest.classes[className].file);
-      if (fs.existsSync(classFile)) {
-        this.classes[className] = JSON.parse(fs.readFileSync(classFile, 'utf-8'));
-      } else if (this.verbose) {
-        console.warn(`[Search] ⚠ Manifest references missing file: ${classFile}`);
+    const files = fs.existsSync(PAGE_OBJECTS_DIR)
+      ? fs.readdirSync(PAGE_OBJECTS_DIR).filter(f => f.endsWith('.index.json'))
+      : [];
+
+    for (const file of files) {
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(PAGE_OBJECTS_DIR, file), 'utf-8'));
+        if (data.className) this.classes[data.className] = data;
+      } catch (err) {
+        if (this.verbose) console.warn(`[Search] ⚠ Skipping unreadable index file: ${file} (${err.message})`);
       }
     }
 
     if (this.verbose) {
-      console.log(`[Search] Loaded ${Object.keys(this.classes).length} class indexes`);
+      console.log(`[Search] Loaded ${Object.keys(this.classes).length} class indexes from page-objects/*.index.json`);
     }
   }
 
@@ -74,7 +75,7 @@ class ClassIndexSearch {
     for (const [className, classData] of Object.entries(this.classes)) {
       const candidateTokens = [
         ...tokenize(className),
-        ...classData.locators.flatMap(tokenize)
+        ...(classData.locators || []).flatMap(tokenize)
       ];
       const score = scoreOverlap(queryTokens, candidateTokens);
       if (score > 0) {
@@ -182,33 +183,12 @@ class ClassIndexSearch {
     };
   }
 
-  /** Verify that methods reported by the index still exist in the actual source file. */
-  verifyMethodsInSource(className, methodNames) {
-    const classData = this.classes[className];
-    if (!classData) {
-      return { allFound: false, missing: methodNames };
-    }
-
-    const sourcePath = path.join(WORKSPACE_ROOT, classData.file);
-    if (!fs.existsSync(sourcePath)) {
-      return { allFound: false, missing: methodNames };
-    }
-
-    const source = fs.readFileSync(sourcePath, 'utf-8');
-    const missing = methodNames.filter(name => {
-      const pattern = new RegExp(`(async\\s+)?\\b${name}\\s*\\(`);
-      return !pattern.test(source);
-    });
-
-    return { allFound: missing.length === 0, missing };
-  }
-
   getSummary() {
+    const classNames = Object.keys(this.classes);
     return {
-      version: this.manifest.version,
-      generatedAt: this.manifest.generatedAt,
-      statistics: this.manifest.statistics,
-      classes: Object.keys(this.classes)
+      classCount: classNames.length,
+      methodCount: classNames.reduce((sum, c) => sum + this.classes[c].methods.length, 0),
+      classes: classNames
     };
   }
 }
