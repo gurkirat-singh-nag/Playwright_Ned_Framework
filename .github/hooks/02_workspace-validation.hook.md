@@ -12,7 +12,7 @@ Verify the workspace structure, required files, templates, instructions, Skills,
 
 ## Executes Before
 
-- All Agents (unified-test-orchestrator, test-generator-ui, test-generator-api, unified-test-healer, jenkins-analyzer, epic-to-user-stories)
+- All Agents (unified-test-orchestrator, test-generator-ui, test-generator-api, unified-test-healer, ado-analyzer, epic-to-user-stories)
 
 ## Executes After
 
@@ -68,7 +68,7 @@ Verify the workspace structure, required files, templates, instructions, Skills,
      - `test-generator-ui.agent.md`
      - `test-generator-api.agent.md`
      - `unified-test-healer.agent.md`
-     - `jenkins-analyzer.agent.md`
+     - `ado-analyzer.agent.md`
      - `epic-to-user-stories.agent.md`
    - Record missing agents
 

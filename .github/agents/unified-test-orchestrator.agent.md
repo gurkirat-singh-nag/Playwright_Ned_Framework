@@ -35,7 +35,7 @@ agents:
   - test-generator-ui
   - test-generator-api
   - unified-test-healer
-  - jenkins-analyzer
+  - ado-analyzer
   - epic-to-user-stories
 
 handoffs:
@@ -54,9 +54,9 @@ handoffs:
     prompt: Debug and fix the failing tests
     send: false
 
-  - label: Analyze Jenkins Build
-    agent: jenkins-analyzer
-    prompt: Analyze the latest Jenkins build results
+  - label: Analyze ADO Build
+    agent: ado-analyzer
+    prompt: Analyze the latest Azure DevOps pipeline results
     send: false
 
   - label: Break Down Epic
@@ -76,7 +76,7 @@ This agent never generates tests, Page Objects, or automation code. It never cre
 
 1. Repository Sync - confirm the local repository/workspace context is current.
 2. Framework Discovery - run the [framework-discovery](../skills/framework-discovery/README.md) Skill (`node .github/skills/framework-discovery/detect.js`). It reuses `artifacts/indexes/framework-profile.json` when current, or regenerates it when missing/stale. This is code/repository discovery only - no browser, no MCP session, no live API call.
-3. Understand Input - classify the raw input (Jira ID, Epic, Swagger/OpenAPI spec, API endpoint, application URL, plain-language requirement, Jenkins build, failing-test report).
+3. Understand Input - classify the raw input (Jira ID, Epic, Swagger/OpenAPI spec, API endpoint, application URL, plain-language requirement, ADO build, failing-test report).
 4. Determine Intent - identify the desired outcome (automation, manual test cases only, healing, CI analysis, epic decomposition).
 5. Determine Project Type - identify the system under test (UI, API, Mobile, Messaging).
 6. Determine Framework - cross-check the identified project type/framework against `framework-profile.json` (`uiFramework`, `apiFramework`, `testRunner`). If the profile reports `"none"`/`"unknown"` for the technology the request needs, surface that as a blocker rather than guessing.
@@ -92,7 +92,7 @@ Downstream, once delegated (owned by `test-generator-ui`/`test-generator-api`, n
 - API endpoint description
 - Application or website URL
 - Plain-language requirement
-- Jenkins build reference
+- ADO build reference
 - Failing test report or "fix tests" request
 
 ## Outputs
@@ -105,7 +105,7 @@ Downstream, once delegated (owned by `test-generator-ui`/`test-generator-api`, n
 
 - framework-discovery - invoked directly by this agent, once per request (reusing the cached profile whenever it is still current).
 
-Beyond that, none directly. This agent delegates to specialist Agents (test-generator-ui, test-generator-api, unified-test-healer, jenkins-analyzer, epic-to-user-stories), which in turn invoke their own Skills.
+Beyond that, none directly. This agent delegates to specialist Agents (test-generator-ui, test-generator-api, unified-test-healer, ado-analyzer, epic-to-user-stories), which in turn invoke their own Skills.
 
 ## Success Criteria
 

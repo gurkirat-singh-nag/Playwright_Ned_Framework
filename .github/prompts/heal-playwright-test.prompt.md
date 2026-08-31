@@ -1,7 +1,7 @@
 ---
 description: "Diagnose and fix a failing Playwright test using the Unified Test Healer agent's evidence-first workflow."
 agent: unified-test-healer
-argument-hint: "Failing spec file/name, error message or stack trace, or a Jenkins build reference"
+argument-hint: "Failing spec file/name, error message or stack trace, or an ADO build reference"
 ---
 Diagnose and repair the failing Playwright automation described below using the Unified Test Healer agent's workflow: gather failure evidence, classify root cause, apply the smallest safe fix, then validate.
 

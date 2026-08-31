@@ -12,7 +12,7 @@ Ensure the local workspace is synchronized with the remote repository before any
 
 ## Executes Before
 
-- All Agents (unified-test-orchestrator, test-generator-ui, test-generator-api, unified-test-healer, jenkins-analyzer, epic-to-user-stories)
+- All Agents (unified-test-orchestrator, test-generator-ui, test-generator-api, unified-test-healer, ado-analyzer, epic-to-user-stories)
 - All Skills (when invoked directly)
 
 ## Executes After
