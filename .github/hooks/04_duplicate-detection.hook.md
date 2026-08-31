@@ -161,11 +161,11 @@ Search the workspace for existing artifacts, tests, Page Objects, API clients, a
    
    - **Example Output**:
      ```
-     [Method-Level Detection] Target method: "assignLeave"
-     [Method-Level Detection] ✓ Found exact match: assignLeavePage.assignLeave(leaveData)
+     [Method-Level Detection] Target method: "confirmOrder"
+     [Method-Level Detection] ✓ Found exact match: checkoutPage.confirmOrder()
      [Method-Level Detection] Recommendation: REUSE existing method
-     [Method-Level Detection] File: page-objects/assignLeavePage.js
-     [Method-Level Detection] Signature: async assignLeave(leaveData)
+     [Method-Level Detection] File: page-objects/checkoutPage.js
+     [Method-Level Detection] Signature: async confirmOrder()
      [Method-Level Detection] ⚡ Skip generation, import existing method
      ```
 

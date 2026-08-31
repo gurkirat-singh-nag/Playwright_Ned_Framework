@@ -1,0 +1,142 @@
+# Using This Scaffold In Your Playwright Project
+
+This `.github/` folder is a portable AI-agent scaffold that generates and heals Playwright automation from Jira stories (or plain-language requests), and reuses your existing Page Objects/API clients before ever launching a browser. It is not tied to this repository - copy `.github/` into any Playwright project and it works the same way. This guide is for a team adopting it for the first time.
+
+**Scope**: this guide covers Playwright projects specifically (UI via Playwright Test, and API automation the `api-automation-specialist` pipeline generates alongside it). A separate adoption guide covers RestAssured-only (Java) projects, where the same scaffold applies but the calibration step below (§3) looks different - Java naming, Maven layout, JUnit/TestNG idioms instead of Playwright's.
+
+## 1. What You're Getting
+
+Five agents, invoked by name or via `/start-test-automation`:
+
+| Agent | Use it for |
+|---|---|
+| `central-automation-orchestrator` | The default entry point. Paste anything - a Jira ID, a URL, a plain-language requirement, a failing test, an ADO build - and it routes to the right specialist below. When in doubt, start here. |
+| `ui-automation-specialist` | UI test generation: Jira story or requirement → Page Objects + Playwright specs. |
+| `api-automation-specialist` | API test generation: Swagger/OpenAPI spec or requirement → API clients + test specs. |
+| `automation-healer-specialist` | A test is failing - diagnose root cause and apply the smallest safe fix. |
+| `ci-analyzer-specialist` | Investigate an Azure DevOps pipeline build and categorize failures before handing off to the healer. |
+| `epic-to-user-stories` | Break a Jira Epic into candidate stories before running the pipeline on each. |
+
+Behind the scenes, each generation request runs a fixed pipeline - requirements → test design → a validation gate → reuse check → exploration (only if needed) → test plan → test cases → generated code - documented in full in [copilot-instructions.md](copilot-instructions.md). You don't need to invoke pipeline stages yourself; the agent you pick does that.
+
+**Shortcuts**: four of the agents also have a slash-command entry point that skips naming the agent explicitly - use whichever you prefer, they're equivalent:
+
+| Slash command | Goes straight to |
+|---|---|
+| `/start-test-automation` | `central-automation-orchestrator` (classify-and-route) |
+| `/generate-playwright-test` | `ui-automation-specialist` directly |
+| `/generate-api-test` | `api-automation-specialist` directly |
+| `/heal-playwright-test` | `automation-healer-specialist` directly |
+
+`ci-analyzer-specialist` and `epic-to-user-stories` have no slash shortcut - invoke them by name.
+
+## 2. Prerequisites
+
+- A Playwright project with an existing `page-objects/` (or equivalent) and `tests/` folder - the scaffold reuses your conventions, it doesn't impose new ones.
+- VS Code + GitHub Copilot Chat with custom agents/prompt files enabled (or an equivalent agent runtime - see the note at the bottom on Claude Code).
+- Optional: [Atlassian MCP](https://mcp.atlassian.com) configured if you want agents to fetch Jira stories directly, and Playwright MCP if you want live browser exploration for genuinely new UI. Both are declared in `.vscode/mcp.json`.
+
+## 3. One-Time Setup
+
+1. **Copy two things into your repo**: the whole `.github/` folder, and `.vscode/mcp.json`. Nothing else is required - there's no install script, no dependency to add to `package.json`.
+2. **Confirm your Copilot/agent runtime picks up the custom agents** - you should see `central-automation-orchestrator` etc. available as agents or via `/start-test-automation`.
+3. **Calibrate the instructions to your repo's actual conventions - do this before generating anything.** This is the step most teams skip and then wonder why generated code doesn't look like theirs.
+
+   `.github/instructions/*.instructions.md` ships with *this* repo's actual conventions written in as concrete examples - `camelCase` Page Object classes, CommonJS `module.exports`, a specific `auth.json`/`testDataUtils.json` pattern, Allure reporting. These aren't universal Playwright rules; they're this project's choices. Copying `.github/` into your repo without updating them means agents will generate code following someone else's conventions, not yours.
+
+   Don't figure this out from scratch by hand - paste the prompt below to your agent. It does the same thing `/init` does for a general codebase (deep-read the repo, then write down what it found), scoped specifically to this scaffold's instruction files, so the team doesn't have to reinvent conventions their codebase already has:
+
+   ```
+   Deeply analyze this repository's actual test automation setup before changing
+   anything else in .github/. Specifically:
+
+   1. Identify the language, UI automation framework, API automation framework
+      (if any), test runner, and package manager actually in use - read
+      package.json / pom.xml / requirements.txt, config files, and installed
+      dependencies directly. Do not guess.
+
+   2. Read every EXISTING Page Object / API client class already in this repo
+      (not this scaffold's own examples) and extract the real conventions
+      already in use:
+      - Locator strategy and its priority order (getByRole, getByTestId,
+        data-*, CSS, XPath - whatever is actually used, in whatever order)
+      - Class naming convention (casing, suffix, file extension)
+      - Export/import style (CommonJS, ES modules, TypeScript classes)
+      - Folder structure for page objects/clients and for tests
+      - Test file naming and grouping conventions (test.describe, JUnit/TestNG
+        annotations, etc.)
+      - Authentication/session handling pattern
+      - Test data source and how it's loaded
+      - Reporters and CI already wired up
+
+   3. Do NOT invent new conventions and do NOT keep this scaffold's own
+      shipped-in defaults (camelCase Page Object classes, CommonJS, an
+      auth-storage-state file, a JSON test-data fixture, Allure) unless this
+      repo genuinely already uses them. The goal is to codify what THIS repo
+      already does, not reinvent it or impose a different style.
+
+   4. Update these files to reflect exactly what you found in step 2,
+      replacing every example that doesn't match this repo:
+      - .github/instructions/page-object.instructions.md
+      - .github/instructions/naming.instructions.md
+      - .github/instructions/playwright.instructions.md
+      - .github/copilot-instructions.md's directory/architecture section,
+        only if this repo's layout differs from what it currently documents
+
+   5. Leave .github/instructions/coding-standards.instructions.md and
+      .github/instructions/artifact-naming.instructions.md /
+      artifact-schemas.instructions.md untouched unless you find a specific,
+      real convention in this repo that conflicts with them.
+
+   6. Show me a summary of what you found and exactly what you changed before
+      I review it. Do not commit.
+   ```
+
+   This is a one-time calibration per project - re-run the same prompt only if your team's conventions change later. It's the difference between generated code that looks like your team wrote it and code that looks copy-pasted from a different one.
+
+4. **Nothing to generate or seed for the reuse index.** It (see §6) starts empty and that's a valid state - it just means the first few stories explore the UI/API fully instead of reusing. You do not need to run a generator or wait for anything to index your existing code before you start.
+5. **Re-run framework discovery once your dependencies are installed**: `node .github/skills/framework-discovery/detect.js --force`, so `artifacts/indexes/framework-profile.json` reflects your actual stack rather than a stale or absent profile.
+
+That's the entire setup. No build step, no server to run.
+
+## 4. The Typical Workflow
+
+1. Pick the entry point: usually `central-automation-orchestrator` with `/start-test-automation`, and paste your Jira story ID, a plain-language requirement, or a Swagger URL.
+2. The agent classifies your input, checks `artifacts/indexes/framework-profile.json` (auto-detected/cached repo tech stack), and delegates to `ui-automation-specialist` or `api-automation-specialist`.
+3. Watch for the **Test Validator gate**: `status` comes back `PASS` (clean, continue), `PASS_WITH_WARNINGS` (continues, but check the listed issues - they're carried into the final summary so they don't get lost), or `BLOCKED` (stops before generating anything, tells you why - missing acceptance criteria, duplicate scenarios, etc.). On `BLOCKED`, fix the story/requirement and re-run rather than trying to push past it.
+4. The pipeline checks your existing Page Objects/clients for reuse *before* exploring the app: 100% coverage skips browser/API exploration entirely and generates straight from what exists; partial coverage explores only the specific gaps instead of re-discovering everything; zero coverage explores in full. You'll see which of the three happened in the agent's output.
+5. Each stage writes its artifact to `artifacts/<slug>/` as it completes and checkpoints its status - so a long-running or interrupted pipeline can be resumed from where it left off (e.g. after a browser-exploration timeout) instead of restarting from scratch and re-paying for an already-completed step.
+6. You get real, runnable output: new or updated files under `page-objects/`/`clients/` and `tests/`, following your project's existing naming and style conventions (see `.github/instructions/`).
+
+## 5. Where To Find (And Use) The Results
+
+Two kinds of output land in two different places - know which one you actually want:
+
+- **`artifacts/<slug>/`** (one folder per story, e.g. `artifacts/proj-1234/`) - the pipeline's working papers: `requirements.md`, `test-design.json`, `test-validation.json`, `test-plan.md`, `test-cases.md`/`testcases.json`, and (for UI) `exploration.md` / (for API) `api-exploration.md`. Read these for traceability - which acceptance criterion maps to which test case, what was explored vs. reused, why a scenario was flagged. This is documentation, not code - don't expect it to run.
+- **Your real source tree** - `page-objects/`, `clients/`, `tests/` - the actual runnable automation. This is what you run with `npx playwright test` exactly as before; the scaffold doesn't change how you execute tests, only how they get written.
+
+Nothing here is a black box: every generated file is plain Playwright JS (or whatever your project's stack is) that you'd write by hand anyway - the agents just write it for you, following your conventions, with traceability back to the requirement.
+
+**Git visibility differs between the two.** This repo's `.gitignore` excludes `artifacts/*` by default (except `artifacts/indexes/`, which only holds `framework-profile.json`, not per-story folders) - so `artifacts/<slug>/` working papers are local-only and won't show up in PRs or be shared with the rest of the team unless you deliberately un-ignore them. `index/` is not covered by that rule at all, so it's tracked and shared normally. Decide early whether your team wants the traceability paper trail committed - if so, remove or narrow the `artifacts/*` exclusion for your repo.
+
+## 6. The Reuse Index - Keep It Current Yourself
+
+Every Page Object/API client has a matching entry under `index/page-objects/<className>.json` (or `index/clients/`, `index/api/`, `index/services/` for API clients) - a small JSON file listing the class's methods, so agents can find and reuse it before exploring your app again. This is what makes the whole "skip the browser if we already have this" optimization work.
+
+**There is no generator script and nothing keeps this in sync automatically.** When you add, rename, or remove a method on a Page Object or client, update its index entry in the same change - same discipline as keeping a test current with the code it covers. The generator Skills (`page-object-generator`, `api-client-generator`) write this entry automatically when *they* create or modify a class; it's only a manual step when you hand-write or hand-edit a class yourself outside the pipeline. See [instructions/page-object.instructions.md](instructions/page-object.instructions.md) / [instructions/api-client.instructions.md](instructions/api-client.instructions.md) for the exact format.
+
+This design is why the scaffold works regardless of your project's language (Java/RestAssured, TypeScript, Python) - the index is just structured JSON, authored by hand or AI, never mechanically parsed from source.
+
+## 7. Healing A Failing Test
+
+Invoke `automation-healer-specialist` with the failing spec name, an error message, or an ADO build reference. It gathers evidence, classifies the root cause (locator change, app behavior change, environment issue, flaky test), and applies the smallest fix - it will not redesign your automation architecture or touch unrelated tests. For CI-sourced failures, `ci-analyzer-specialist` investigates the Azure DevOps build first and hands off categorized findings.
+
+## 8. If Something's Unclear
+
+- [copilot-instructions.md](copilot-instructions.md) is the full architecture reference - read it for the complete pipeline diagram and every agent/Skill's responsibility.
+- Each Skill has its own `README.md` under `.github/skills/<name>/` documenting its exact inputs, outputs, and failure handling.
+- `.github/instructions/*.instructions.md` documents the naming/coding conventions generated code follows - check these if generated output doesn't match your team's existing style, and adjust the instructions file rather than fighting the generator each time.
+
+## A Note On Agent Runtimes
+
+This scaffold's `.agent.md`/`.prompt.md` files are written for GitHub Copilot's custom-agent feature. If your team uses Claude Code instead, the same `.github/` folder still works as documentation an assistant can read and follow - Skills, hooks, and instructions are plain Markdown regardless of which AI tool reads them - but Claude Code has no automatic agent-handoff runtime or hook auto-invocation for these files; a session following this scaffold does so by reading and applying it directly rather than a Copilot-specific engine wiring it together automatically.
