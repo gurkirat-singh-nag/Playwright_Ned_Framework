@@ -43,7 +43,7 @@ Runs inside `api-automation-specialist` (see [api-automation-specialist.agent.md
 
 If `artifacts/<slug>/api-reuse-decision.json` exists:
 
-- A scenario resolved `FULL_REUSE` - do not analyze it. Write its section of `api-exploration.md` directly from the existing client method's recorded `httpMethod`/`endpoint` (from its colocated `.index.json`), same "document what's reused, don't re-derive it" pattern as UI exploration.
+- A scenario resolved `FULL_REUSE` - do not analyze it. Write its section of `api-exploration.md` directly from the existing client method's recorded `httpMethod`/`endpoint` (from its `index/<clients|api|services>/` entry), same "document what's reused, don't re-derive it" pattern as UI exploration.
 - A scenario resolved `PARTIAL_REUSE` - analyze only its `missing[]` operations.
 - A scenario resolved `NO_REUSE`, or no decision file exists - proceed to Step 1 in full for that scenario.
 

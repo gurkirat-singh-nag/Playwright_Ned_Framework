@@ -2,13 +2,13 @@
 
 ## Purpose
 
-The API equivalent of the UI reuse layer (`.github/capabilities/`): **before Swagger/OpenAPI analysis or live API exploration, search the existing API automation framework** for reusable clients, methods, request/payload builders, and validators. Same principle, same three-way decision shape - just pointed at API clients instead of UI Page Objects. Index files are hand-authored (or AI-assisted), colocated with the client class they describe - see Index Authorship below - which is what makes this Skill work for any language (Java/RestAssured, JS/Supertest, Python, ...), not just JavaScript.
+The API equivalent of the UI reuse layer (`.github/capabilities/`): **before Swagger/OpenAPI analysis or live API exploration, search the existing API automation framework** for reusable clients, methods, request/payload builders, and validators. Same principle, same three-way decision shape - just pointed at API clients instead of UI Page Objects. Index files are hand-authored (or AI-assisted), under `index/<clients|api|services>/`, mirroring the client class they describe - see Index Authorship below - which is what makes this Skill work for any language (Java/RestAssured, JS/Supertest, Python, ...), not just JavaScript.
 
 ## Repository State At The Time This Was Built
 
 **This repository currently has no API automation of any kind.** Verified before writing anything: no `axios`/`supertest`/`rest-assured` dependency in `package.json`, no `api/`/`clients/`/`services/` directory, no `*ApiClient`/`*Client`/`*Api` source file anywhere, no API-specific instructions file, `framework-profile.json` already reports `apiFramework: "unknown"` and `architecture.api: "unknown"`.
 
-This Skill is therefore built to work correctly *the moment* a developer adds a real API client - it is not built around, and does not pretend to have found, capabilities that don't exist. With zero `*.index.json` files present, `ApiIndexSearch` correctly loads zero classes and every scenario falls through to `NO_REUSE`, not a fabricated match.
+This Skill is therefore built to work correctly *the moment* a developer adds a real API client - it is not built around, and does not pretend to have found, capabilities that don't exist. With zero index files present under `index/`, `ApiIndexSearch` correctly loads zero classes and every scenario falls through to `NO_REUSE`, not a fabricated match.
 
 ## Position In The Pipeline
 
@@ -41,25 +41,27 @@ Runs once per request, inside `api-automation-specialist` (see [api-automation-s
 ## Inputs
 
 - `artifacts/<slug>/test-design.json` (primary - each scenario's `steps` become the required operations to search for; scenarios with `technology: "API"` or `"both"` are in scope, `"UI"`-only scenarios are not)
-- `<clients|api|services>/*.index.json` (the index this Skill searches - whichever of those three directories the target repository uses for its API client classes)
+- `index/<clients|api|services>/*.json` (the index this Skill searches - mirroring whichever of those three directories the target repository uses for its API client classes)
 - `artifacts/<slug>/requirements.md`, for any explicit endpoint/HTTP-method evidence not captured in `test-design.json`
 
 ## Outputs
 
 - `artifacts/<slug>/api-reuse-decision.json` - per-scenario `FULL_REUSE`/`PARTIAL_REUSE`/`NO_REUSE` with evidence, in the same `artifacts/<slug>/` directory as every other pipeline artifact.
 
-This Skill only reads the index - it never writes or updates `*.index.json` files itself; that is `api-client-generator`'s job when it creates a class, or a manual/AI-assisted edit when retrofitting existing code (see Index Authorship below).
+This Skill only reads the index - it never writes or updates index files itself; that is `api-client-generator`'s job when it creates a class, or a manual/AI-assisted edit when retrofitting existing code (see Index Authorship below).
 
-## API Index (colocated `*.index.json` files)
+## API Index (`index/<clients|api|services>/` files)
 
-Same shape decision as the UI class index - no business-capability abstraction, no `capabilities/login.json`/`create.json`/`search.json` files. One JSON file per actual API client class, next to the class it describes:
+Same shape decision as the UI class index - no business-capability abstraction, no `capabilities/login.json`/`create.json`/`search.json` files. One JSON file per actual API client class, mirroring the source tree under `index/`:
 
 ```
 clients/                          (or api/, or services/ - whichever the project uses)
 ├── CustomerApiClient.java
-├── CustomerApiClient.index.json
-├── OrderApiClient.js
-└── OrderApiClient.index.json
+└── OrderApiClient.js
+
+index/clients/                    (mirrors the tree above)
+├── CustomerApiClient.json
+└── OrderApiClient.json
 ```
 
 Each index file: `className`, `file` (source path), `methods[]` - each with `name`, `params`, `description`, `httpMethod` (GET/POST/PUT/PATCH/DELETE, when known), `endpoint` (the literal path, when known). No inferred business capability is ever added - see the example below.
@@ -71,7 +73,7 @@ Each index file: `className`, `file` (source path), `methods[]` - each with `nam
 getCustomer(String customerId)
 createCustomer(CustomerRequest request)
 ```
-→ `CustomerApi.index.json`, colocated with `CustomerApi.java`, would record exactly those two methods and their parameters - never a derived `customer-management.json` or `search.json`.
+→ `index/clients/CustomerApi.json`, mirroring `clients/CustomerApi.java`, would record exactly those two methods and their parameters - never a derived `customer-management.json` or `search.json`.
 
 ### Index Authorship
 
@@ -121,7 +123,7 @@ Confidence bar for `FULL_REUSE`/`PARTIAL_REUSE` is 75 (vs. 60 for the UI class i
 - Must NOT create a business-capability abstraction layer (`capabilities/login.json`, `capabilities/create.json`, etc.) - one file per real client class only, exactly like the UI class index.
 - Must NOT duplicate Test Architect or Test Validator - both are invoked as-is; this Skill only adds the reuse-decision step between them and generation.
 - Must NOT claim reuse from method-name similarity alone - see No False Positives.
-- Must NOT write or modify `*.index.json` files itself - it is a read-only consumer of the index (see Index Authorship above).
+- Must NOT write or modify index files itself - it is a read-only consumer of the index (see Index Authorship above).
 
 ## Git / Artifacts
 
@@ -148,5 +150,5 @@ See [api-automation-specialist.agent.md](../../agents/api-automation-specialist.
 
 ## Limitations
 
-- The index can drift from source: nothing detects a renamed/removed method whose `.index.json` wasn't updated in the same change. This is the deliberate trade-off of manual/AI authorship over a mechanical parser - see Index Authorship above.
+- The index can drift from source: nothing detects a renamed/removed method whose index file wasn't updated in the same change. This is the deliberate trade-off of manual/AI authorship over a mechanical parser - see Index Authorship above.
 - Confidence scoring is keyword/verb-family based, not a full NLP match - a genuinely reusable method with very different wording from the requirement may score below the confidence bar and be missed.

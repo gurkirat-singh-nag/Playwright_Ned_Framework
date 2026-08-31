@@ -3,13 +3,13 @@
 /**
  * Class Index Search (Simplified Architecture v4.0 - manually maintained)
  *
- * Direct Page Object class/method search against *.index.json files colocated with
- * their Page Object in page-objects/ - no business-capability abstraction layer, no
- * generated manifest, no source parser. Index files are authored/updated by hand (or
- * with AI assistance) alongside the Page Object they describe - see
- * page-object.instructions.md. Keeping an index entry in sync with its Page Object is
- * the same discipline as keeping a test in sync with the code it covers; no separate
- * generation or verification step exists for it.
+ * Direct Page Object class/method search against *.json files under index/page-objects/,
+ * mirroring the structure of page-objects/ but kept separate from source - no
+ * business-capability abstraction layer, no generated manifest, no source parser.
+ * Index files are authored/updated by hand (or with AI assistance) alongside the Page
+ * Object they describe - see page-object.instructions.md. Keeping an index entry in
+ * sync with its Page Object is the same discipline as keeping a test in sync with the
+ * code it covers; no separate generation or verification step exists for it.
  *
  * CLI usage:
  *   node .github/capabilities/search-simplified.js "login"
@@ -21,7 +21,7 @@ const fs = require('fs');
 const path = require('path');
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../..');
-const PAGE_OBJECTS_DIR = path.join(WORKSPACE_ROOT, 'page-objects');
+const INDEX_DIR = path.join(WORKSPACE_ROOT, 'index', 'page-objects');
 
 function tokenize(text) {
   // Split camelCase BEFORE lowercasing - [a-z0-9][A-Z] never matches on already-lowercased
@@ -45,13 +45,13 @@ class ClassIndexSearch {
     this.verbose = verbose;
     this.classes = {};
 
-    const files = fs.existsSync(PAGE_OBJECTS_DIR)
-      ? fs.readdirSync(PAGE_OBJECTS_DIR).filter(f => f.endsWith('.index.json'))
+    const files = fs.existsSync(INDEX_DIR)
+      ? fs.readdirSync(INDEX_DIR).filter(f => f.endsWith('.json'))
       : [];
 
     for (const file of files) {
       try {
-        const data = JSON.parse(fs.readFileSync(path.join(PAGE_OBJECTS_DIR, file), 'utf-8'));
+        const data = JSON.parse(fs.readFileSync(path.join(INDEX_DIR, file), 'utf-8'));
         if (data.className) this.classes[data.className] = data;
       } catch (err) {
         if (this.verbose) console.warn(`[Search] ⚠ Skipping unreadable index file: ${file} (${err.message})`);
@@ -59,7 +59,7 @@ class ClassIndexSearch {
     }
 
     if (this.verbose) {
-      console.log(`[Search] Loaded ${Object.keys(this.classes).length} class indexes from page-objects/*.index.json`);
+      console.log(`[Search] Loaded ${Object.keys(this.classes).length} class indexes from index/page-objects/*.json`);
     }
   }
 

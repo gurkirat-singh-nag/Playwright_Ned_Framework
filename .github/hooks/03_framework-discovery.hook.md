@@ -176,15 +176,15 @@ Automatically detect the testing framework(s) in use within the workspace, ident
     - **Purpose**: Confirm the reuse index consulted before browser exploration is reachable - no business-capability abstraction layer, no generation step.
     - **When**: After framework detection, before returning analysis object
     - **Process**:
-      1. Count `page-objects/*.index.json` files present.
+      1. Count `index/page-objects/*.json` files present.
       2. Report the count as-is - zero is a valid state (nothing to reuse yet), not an error.
-      3. Do NOT generate, parse, or regenerate anything here - index files are hand-authored (or AI-assisted), colocated with each Page Object; see [02.5_intelligent-reuse-enforcement.hook.md](02.5_intelligent-reuse-enforcement.hook.md).
+      3. Do NOT generate, parse, or regenerate anything here - index files are hand-authored (or AI-assisted), mirroring `page-objects/` under `index/page-objects/`; see [02.5_intelligent-reuse-enforcement.hook.md](02.5_intelligent-reuse-enforcement.hook.md).
     - **Benefits**:
       - ✅ Agents discover existing Page Objects/methods before Playwright MCP exploration
       - ✅ Eliminates duplicate Page Objects and redundant browser sessions
       - ✅ Works for any source language, since nothing here parses source code
     - **Outputs**:
-      - Log: "✓ Found X colocated class index file(s) in page-objects/"
+      - Log: "✓ Found X class index file(s) in index/page-objects/"
     - **Documentation**: See `.github/hooks/02.5_intelligent-reuse-enforcement.hook.md`
 
 10.5. **Schedule Reuse Enforcement**
@@ -210,7 +210,7 @@ Automatically detect the testing framework(s) in use within the workspace, ident
         api_frameworks: [...],
         reuse_enforcement_required: true,
         class_index: {
-          location: 'page-objects/*.index.json',
+          location: 'index/page-objects/*.json',
           filesFound: 5
         },
         next_hook: '02.5_intelligent-reuse-enforcement.hook.md'

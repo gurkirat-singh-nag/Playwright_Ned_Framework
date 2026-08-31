@@ -3,15 +3,15 @@
 /**
  * API Capability Search (manually maintained)
  *
- * Direct API client class/method search against *.index.json files colocated with
- * their client class in clients/ / api/ / services/ (whichever the target repository
- * uses) - the API equivalent of .github/capabilities/search-simplified.js's
- * ClassIndexSearch, reusing the same "direct index search before exploration"
- * principle. No business-capability abstraction layer, no generated manifest, no
- * source parser (that only ever worked for JavaScript - see README's former
- * Limitations). Index files are authored/updated by hand (or with AI assistance)
- * alongside the client class they describe, in any language - see
- * api-client.instructions.md.
+ * Direct API client class/method search against *.json files under index/clients/,
+ * index/api/, or index/services/ (mirroring whichever of clients//api//services/ the
+ * target repository uses for its client source, kept separate from that source) - the
+ * API equivalent of .github/capabilities/search-simplified.js's ClassIndexSearch,
+ * reusing the same "direct index search before exploration" principle. No
+ * business-capability abstraction layer, no generated manifest, no source parser (that
+ * only ever worked for JavaScript - see README's former Limitations). Index files are
+ * authored/updated by hand (or with AI assistance) alongside the client class they
+ * describe, in any language - see api-client.instructions.md.
  *
  * CLI usage:
  *   node .github/skills/api-capability-discovery/search.js "get customer by id"
@@ -23,7 +23,7 @@ const fs = require('fs');
 const path = require('path');
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../..');
-const CANDIDATE_DIRS = ['clients', 'api', 'services'];
+const CANDIDATE_DIRS = ['index/clients', 'index/api', 'index/services'];
 
 // Action-verb families: mismatched families lower confidence even with strong token
 // overlap elsewhere, so e.g. getCustomer() doesn't get credited for a "search"/"find"
@@ -65,7 +65,7 @@ class ApiIndexSearch {
       const dirPath = path.join(WORKSPACE_ROOT, dirName);
       if (!fs.existsSync(dirPath)) continue;
 
-      const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.index.json'));
+      const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.json'));
       for (const file of files) {
         try {
           const data = JSON.parse(fs.readFileSync(path.join(dirPath, file), 'utf-8'));
@@ -76,7 +76,7 @@ class ApiIndexSearch {
       }
     }
 
-    if (this.verbose) console.log(`[API Search] Loaded ${Object.keys(this.classes).length} API class indexes from */*.index.json`);
+    if (this.verbose) console.log(`[API Search] Loaded ${Object.keys(this.classes).length} API class indexes from index/{clients,api,services}/*.json`);
   }
 
   getClass(className) {

@@ -190,7 +190,7 @@ function detectDirectories() {
     skills: exists('.github/skills') ? '.github/skills/' : UNKNOWN,
     agents: exists('.github/agents') ? '.github/agents/' : UNKNOWN,
     workflows: exists('.github/workflows') ? '.github/workflows/' : UNKNOWN,
-    capabilityIndex: 'page-objects/*.index.json'
+    capabilityIndex: 'index/page-objects/*.json'
   };
 }
 
