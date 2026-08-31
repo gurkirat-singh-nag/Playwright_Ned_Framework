@@ -24,7 +24,7 @@ jira-story-analyzer  →  requirements.md
         page-object-generator / test-script-generator
 ```
 
-Runs **once per request**, immediately after `requirements.md` exists and before the reuse-enforcement hook. It is invoked by whichever agent owns the per-story pipeline (`ui-automation-specialist` today; `test-generator-api` once its Skills are implemented) - not re-invoked per downstream Skill. See [ui-automation-specialist.agent.md](../../agents/ui-automation-specialist.agent.md) for the exact pipeline position.
+Runs **once per request**, immediately after `requirements.md` exists and before the reuse-enforcement hook. It is invoked by whichever agent owns the per-story pipeline (`ui-automation-specialist` today; `api-automation-specialist` once its Skills are implemented) - not re-invoked per downstream Skill. See [ui-automation-specialist.agent.md](../../agents/ui-automation-specialist.agent.md) for the exact pipeline position.
 
 ## Inputs
 

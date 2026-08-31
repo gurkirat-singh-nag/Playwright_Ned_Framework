@@ -7,13 +7,13 @@ Search the workspace for existing artifacts, tests, Page Objects, API clients, a
 ## Trigger
 
 - **Type**: Pre-Hook (before generation)
-- **Scope**: Generation Agents (ui-automation-specialist, test-generator-api)
+- **Scope**: Generation Agents (ui-automation-specialist, api-automation-specialist)
 - **Execution Point**: After Framework Discovery Hook, before Specialist Agent invokes generation Skills
 
 ## Executes Before
 
 - ui-automation-specialist (before page-object-generator, test-script-generator)
-- test-generator-api (before api-client-generator, api-test-script-generator)
+- api-automation-specialist (before api-client-generator, api-test-script-generator)
 
 ## Executes After
 

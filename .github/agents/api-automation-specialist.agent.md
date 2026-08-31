@@ -1,5 +1,5 @@
 ---
-name: test-generator-api
+name: api-automation-specialist
 
 description: |
   Generate manual test cases and API automation from Swagger/OpenAPI
@@ -26,7 +26,7 @@ user-invocable: true
 
 disable-model-invocation: false
 ---
-# API Test Generator
+# API Automation Specialist
 
 ## Responsibility
 

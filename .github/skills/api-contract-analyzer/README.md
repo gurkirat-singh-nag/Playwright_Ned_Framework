@@ -22,7 +22,7 @@ API Client Generator  →  clients/
 API Test Script Generator  →  tests/
 ```
 
-Runs inside `test-generator-api` (see [test-generator-api.agent.md](../../agents/test-generator-api.agent.md) Step 6), only reached if the Test Validator gate did not block and only for the scenarios `api-capability-discovery` did not already resolve as `FULL_REUSE`.
+Runs inside `api-automation-specialist` (see [api-automation-specialist.agent.md](../../agents/api-automation-specialist.agent.md) Step 6), only reached if the Test Validator gate did not block and only for the scenarios `api-capability-discovery` did not already resolve as `FULL_REUSE`.
 
 ## Inputs
 

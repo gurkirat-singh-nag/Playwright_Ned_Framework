@@ -36,7 +36,7 @@ existing    operation(s)    live API          │
            rather than always running in full)
 ```
 
-Runs once per request, inside `test-generator-api` (see [test-generator-api.agent.md](../../agents/test-generator-api.agent.md)), reusing Test Architect and Test Validator exactly as built for UI - **not duplicated**.
+Runs once per request, inside `api-automation-specialist` (see [api-automation-specialist.agent.md](../../agents/api-automation-specialist.agent.md)), reusing Test Architect and Test Validator exactly as built for UI - **not duplicated**.
 
 ## Inputs
 
@@ -137,7 +137,7 @@ Identical contract to the UI class index: the index is generated metadata, never
 
 ## Integration With The API Agent
 
-See [test-generator-api.agent.md](../../agents/test-generator-api.agent.md) for the exact pipeline position. Summary: Jira Story Analyzer → **Test Architect** (reused) → **Test Validator** (reused, gate - `BLOCKED` stops here, before this Skill even runs) → **API Capability Discovery** → conditional **API Contract Analyzer** → Test Plan Generator / Test Case Documenter (reused, shared with UI) → **API Client Generator** / **API Test Script Generator**.
+See [api-automation-specialist.agent.md](../../agents/api-automation-specialist.agent.md) for the exact pipeline position. Summary: Jira Story Analyzer → **Test Architect** (reused) → **Test Validator** (reused, gate - `BLOCKED` stops here, before this Skill even runs) → **API Capability Discovery** → conditional **API Contract Analyzer** → Test Plan Generator / Test Case Documenter (reused, shared with UI) → **API Client Generator** / **API Test Script Generator**.
 
 ## MCP / HTTP Calls
 

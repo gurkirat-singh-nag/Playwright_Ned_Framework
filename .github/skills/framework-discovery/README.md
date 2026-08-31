@@ -10,7 +10,7 @@ This Skill is code/repository discovery only. It never launches a browser or an 
 
 ## When It Should Be Invoked
 
-- By `central-automation-orchestrator`, early in the pipeline - after understanding the raw request, before delegating to a UI/API specialist agent (`ui-automation-specialist`, `test-generator-api`) - so the orchestrator (and, transitively, the agent it delegates to) already knows what kind of framework it's generating into.
+- By `central-automation-orchestrator`, early in the pipeline - after understanding the raw request, before delegating to a UI/API specialist agent (`ui-automation-specialist`, `api-automation-specialist`) - so the orchestrator (and, transitively, the agent it delegates to) already knows what kind of framework it's generating into.
 - On explicit request (e.g. "re-discover the framework", "the tech stack changed").
 - Automatically, whenever `artifacts/indexes/framework-profile.json` is missing or stale (see Staleness below) - the Skill self-detects this, so callers do not need to check first.
 
@@ -86,7 +86,7 @@ This means editing a test spec or a single Page Object method does **not** inval
 ## How Agents Should Consume The Result
 
 - `central-automation-orchestrator` calls `node .github/skills/framework-discovery/detect.js` (no flags - it self-detects staleness) before determining the UI/API generation path, and reads the resulting `artifacts/indexes/framework-profile.json` into its context package alongside the routing decision it hands off.
-- Specialist agents (`ui-automation-specialist`, `test-generator-api`) receive the profile from the orchestrator rather than re-running discovery themselves.
+- Specialist agents (`ui-automation-specialist`, `api-automation-specialist`) receive the profile from the orchestrator rather than re-running discovery themselves.
 - `ui-automation-specialist`'s reuse check (`.github/hooks/02.5_intelligent-reuse-enforcement.hook.md`) and `page-object-generator` may read `directories.pageObjects` / `architecture.ui` from the profile instead of re-deriving them.
 - If `uiFramework` or `apiFramework` is `"unknown"` or `"none"` for the kind of work requested, the consuming agent should surface that as a blocker/question rather than guessing a framework to generate against.
 

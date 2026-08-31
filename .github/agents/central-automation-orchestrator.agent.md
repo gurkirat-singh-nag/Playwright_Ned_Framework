@@ -33,7 +33,7 @@ disable-model-invocation: false
 
 agents:
   - ui-automation-specialist
-  - test-generator-api
+  - api-automation-specialist
   - unified-test-healer
   - ado-analyzer
   - epic-to-user-stories
@@ -45,7 +45,7 @@ handoffs:
     send: false
 
   - label: Generate API Tests
-    agent: test-generator-api
+    agent: api-automation-specialist
     prompt: Generate API tests from this specification
     send: false
 
@@ -83,7 +83,7 @@ This agent never generates tests, Page Objects, or automation code. It never cre
 7. Determine Agent - select the single specialist agent that owns the identified intent, project type, and framework.
 8. Delegate - hand off to the selected specialist agent with the full context package, including `framework-profile.json`, so it does not need to re-run discovery.
 
-Downstream, once delegated (owned by `ui-automation-specialist`/`test-generator-api`, not by this agent): Story Analysis → **Test Architect** (technology-neutral test design, traceable to acceptance criteria) → **Test Validator** (gate - BLOCKED stops the pipeline before any reuse check, exploration, or generation runs) → Capability Discovery (UI: reuse-enforcement hook against `artifacts/indexes/classes/`; API: **API Capability Discovery** Skill against `artifacts/indexes/api/`, deciding FULL_REUSE/PARTIAL_REUSE/NO_REUSE) → Reuse/Partial/Full Exploration → UI/API Generator. Test Architect and Test Validator are shared, unmodified Skills reused by both `ui-automation-specialist` and `test-generator-api` - neither is duplicated per project type. This agent does not invoke any of them itself - it owns request-level routing and framework identity only, not the per-story artifact pipeline. See [test-architect/README.md](../skills/test-architect/README.md), [test-validator/README.md](../skills/test-validator/README.md), [api-capability-discovery/README.md](../skills/api-capability-discovery/README.md), and [ui-automation-specialist.agent.md](ui-automation-specialist.agent.md) / [test-generator-api.agent.md](test-generator-api.agent.md).
+Downstream, once delegated (owned by `ui-automation-specialist`/`api-automation-specialist`, not by this agent): Story Analysis → **Test Architect** (technology-neutral test design, traceable to acceptance criteria) → **Test Validator** (gate - BLOCKED stops the pipeline before any reuse check, exploration, or generation runs) → Capability Discovery (UI: reuse-enforcement hook against `artifacts/indexes/classes/`; API: **API Capability Discovery** Skill against `artifacts/indexes/api/`, deciding FULL_REUSE/PARTIAL_REUSE/NO_REUSE) → Reuse/Partial/Full Exploration → UI/API Generator. Test Architect and Test Validator are shared, unmodified Skills reused by both `ui-automation-specialist` and `api-automation-specialist` - neither is duplicated per project type. This agent does not invoke any of them itself - it owns request-level routing and framework identity only, not the per-story artifact pipeline. See [test-architect/README.md](../skills/test-architect/README.md), [test-validator/README.md](../skills/test-validator/README.md), [api-capability-discovery/README.md](../skills/api-capability-discovery/README.md), and [ui-automation-specialist.agent.md](ui-automation-specialist.agent.md) / [api-automation-specialist.agent.md](api-automation-specialist.agent.md).
 
 ## Inputs
 
@@ -105,7 +105,7 @@ Downstream, once delegated (owned by `ui-automation-specialist`/`test-generator-
 
 - framework-discovery - invoked directly by this agent, once per request (reusing the cached profile whenever it is still current).
 
-Beyond that, none directly. This agent delegates to specialist Agents (ui-automation-specialist, test-generator-api, unified-test-healer, ado-analyzer, epic-to-user-stories), which in turn invoke their own Skills.
+Beyond that, none directly. This agent delegates to specialist Agents (ui-automation-specialist, api-automation-specialist, unified-test-healer, ado-analyzer, epic-to-user-stories), which in turn invoke their own Skills.
 
 ## Success Criteria
 
