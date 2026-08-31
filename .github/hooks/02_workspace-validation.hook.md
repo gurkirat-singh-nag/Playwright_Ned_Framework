@@ -12,7 +12,7 @@ Verify the workspace structure, required files, templates, instructions, Skills,
 
 ## Executes Before
 
-- All Agents (central-automation-orchestrator, test-generator-ui, test-generator-api, unified-test-healer, ado-analyzer, epic-to-user-stories)
+- All Agents (central-automation-orchestrator, ui-automation-specialist, test-generator-api, unified-test-healer, ado-analyzer, epic-to-user-stories)
 
 ## Executes After
 
@@ -65,7 +65,7 @@ Verify the workspace structure, required files, templates, instructions, Skills,
      - Check `useTool` restrictions if present
    - Expected agents:
      - `central-automation-orchestrator.agent.md`
-     - `test-generator-ui.agent.md`
+     - `ui-automation-specialist.agent.md`
      - `test-generator-api.agent.md`
      - `unified-test-healer.agent.md`
      - `ado-analyzer.agent.md`

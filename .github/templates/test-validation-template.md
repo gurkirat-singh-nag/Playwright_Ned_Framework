@@ -1,7 +1,7 @@
 # test-validation.md - Artifact Contract
 
 Produced by: Test Validator
-Consumed by: The invoking agent's gate check (test-generator-ui), before capability discovery / generation may proceed.
+Consumed by: The invoking agent's gate check (ui-automation-specialist), before capability discovery / generation may proceed.
 
 This file is the validation verdict for one request's `test-design.json`. It is derived from `test-design.json`, `requirements.md`, `framework-profile.json`, the class index, and any other artifact already present for the slug (e.g. `testcases.json`, for integrity checking only). It never contains automation code and is never produced by launching a browser or MCP session.
 

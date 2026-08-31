@@ -46,7 +46,7 @@ Coordinate the full API test lifecycle - requirements, test design, test design 
 10. Generate Automation - invoke the **API Test Script Generator** Skill (see [api-test-script-generator/README.md](../skills/api-test-script-generator/README.md)).
 11. Validate Output - confirm the full artifact chain is complete and consistent.
 
-At Step 1, if `artifacts/<slug>/pipeline-state.json` exists, call `resumePlan(slug)` (see [pipeline-state/README.md](../skills/pipeline-state/README.md)) and resume at the stage it returns rather than re-running from Step 2. After each step completes, call `checkpoint(slug, stageName)` - same shared utility as `test-generator-ui`, not a second state mechanism. `capability-discovery`'s stage checkpoint accepts either `reuse-decision.json` (UI) or `api-reuse-decision.json` (this agent), so a `FULL_REUSE` decision surviving a restart works identically to the UI pipeline's `FULL_REUSE`/exploration-`SKIPPED` behavior.
+At Step 1, if `artifacts/<slug>/pipeline-state.json` exists, call `resumePlan(slug)` (see [pipeline-state/README.md](../skills/pipeline-state/README.md)) and resume at the stage it returns rather than re-running from Step 2. After each step completes, call `checkpoint(slug, stageName)` - same shared utility as `ui-automation-specialist`, not a second state mechanism. `capability-discovery`'s stage checkpoint accepts either `reuse-decision.json` (UI) or `api-reuse-decision.json` (this agent), so a `FULL_REUSE` decision surviving a restart works identically to the UI pipeline's `FULL_REUSE`/exploration-`SKIPPED` behavior.
 
 ## Inputs
 

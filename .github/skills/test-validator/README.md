@@ -34,7 +34,7 @@ Test Architect  →  test-design.md, test-design.json
                     ... rest of the pipeline unchanged ...
 ```
 
-Runs once per request, immediately after `test-design.json` exists, inside the same agent that owns the per-story pipeline (`test-generator-ui` today). It is not re-invoked per downstream Skill. See [test-generator-ui.agent.md](../../agents/test-generator-ui.agent.md) for the exact pipeline position and gate wiring.
+Runs once per request, immediately after `test-design.json` exists, inside the same agent that owns the per-story pipeline (`ui-automation-specialist` today). It is not re-invoked per downstream Skill. See [ui-automation-specialist.agent.md](../../agents/ui-automation-specialist.agent.md) for the exact pipeline position and gate wiring.
 
 ## Inputs
 
@@ -119,11 +119,11 @@ status = PASS_WITH_WARNINGS  → Continue, but carry the warnings forward in the
 status = PASS                → Continue normally.
 ```
 
-The invoking agent must never proceed past a `BLOCKED` status - this is the one hard stop this Skill introduces into the pipeline, matching the existing "Stop on Failure" rule every Skill in `test-generator-ui`'s pipeline already follows, applied here specifically to blocker-level validation findings rather than a missing/invalid artifact.
+The invoking agent must never proceed past a `BLOCKED` status - this is the one hard stop this Skill introduces into the pipeline, matching the existing "Stop on Failure" rule every Skill in `ui-automation-specialist`'s pipeline already follows, applied here specifically to blocker-level validation findings rather than a missing/invalid artifact.
 
 ## How Downstream Agents Consume The Result
 
-- `test-generator-ui` checks `test-validation.json`'s `status` immediately after this Skill runs, before invoking the reuse-enforcement hook. `BLOCKED` halts the pipeline exactly like any other Skill failure. `PASS_WITH_WARNINGS`'s `issues[]` are carried into the final completion summary so a human sees them even though generation proceeded.
+- `ui-automation-specialist` checks `test-validation.json`'s `status` immediately after this Skill runs, before invoking the reuse-enforcement hook. `BLOCKED` halts the pipeline exactly like any other Skill failure. `PASS_WITH_WARNINGS`'s `issues[]` are carried into the final completion summary so a human sees them even though generation proceeded.
 - `02.5_intelligent-reuse-enforcement.hook.md` and `playwright-browser-exploration` are not expected to re-read `test-validation.json` themselves - the gate has already been applied by the time they run.
 
 ## Logging

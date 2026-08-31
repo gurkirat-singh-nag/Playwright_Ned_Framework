@@ -1,5 +1,5 @@
 ---
-name: test-generator-ui
+name: ui-automation-specialist
 
 description: |
   Generate UI test cases and Playwright automation from Jira stories,
@@ -30,7 +30,7 @@ user-invocable: true
 
 disable-model-invocation: false
 ---
-# UI Test Generator
+# UI Automation Specialist
 
 ## Responsibility
 

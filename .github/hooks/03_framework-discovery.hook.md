@@ -12,7 +12,7 @@ Automatically detect the testing framework(s) in use within the workspace, ident
 
 ## Executes Before
 
-- All Agents (central-automation-orchestrator, test-generator-ui, test-generator-api, unified-test-healer)
+- All Agents (central-automation-orchestrator, ui-automation-specialist, test-generator-api, unified-test-healer)
 
 ## Executes After
 

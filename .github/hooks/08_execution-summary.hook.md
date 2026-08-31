@@ -220,7 +220,7 @@ Generate a comprehensive execution summary report documenting the complete workf
     
     ## Execution Flow
     1. central-automation-orchestrator (5s) ✓
-    2. test-generator-ui (3m 35s) ✓
+    2. ui-automation-specialist (3m 35s) ✓
        - jira-story-analyzer (45s) ✓
        - playwright-browser-exploration (1m 20s) ✓
        - test-plan-generator (30s) ✓

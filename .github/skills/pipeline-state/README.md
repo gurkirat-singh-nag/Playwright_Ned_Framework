@@ -108,7 +108,7 @@ Recorded exactly as specified: `state.status = 'BLOCKED'`, `state.currentStage =
 
 Each existing agent checkpoints at the Skill boundaries it already has - no agent redesign, no new Skill invocations added beyond what Prompts 2-4 already wired in:
 
-- `test-generator-ui.agent.md` / `test-generator-api.agent.md`: after each Skill's "Verify Output" step (already part of both agents' existing per-Skill loop), call `checkpoint(slug, stageName)`. Before invoking a Skill, call `resumePlan(slug)` (or trust the agent's own existing "Skip If Valid" artifact check, which `evaluateStage()` now formalizes into a written record) to decide whether to skip it.
+- `ui-automation-specialist.agent.md` / `test-generator-api.agent.md`: after each Skill's "Verify Output" step (already part of both agents' existing per-Skill loop), call `checkpoint(slug, stageName)`. Before invoking a Skill, call `resumePlan(slug)` (or trust the agent's own existing "Skip If Valid" artifact check, which `evaluateStage()` now formalizes into a written record) to decide whether to skip it.
 - `central-automation-orchestrator.agent.md`: unchanged - it does not own the per-story pipeline and does not need pipeline-state awareness, consistent with its existing "no pipeline artifact" boundary (see `CLAUDE.md`/agent docs from Prompt 1-4).
 - Test Validator's `BLOCKED` gate (already enforced by the agent's own "never proceed past BLOCKED" rule from Prompt 3) is now also durable across a restart via `pipeline-state.json`, not just enforced within a single run.
 
