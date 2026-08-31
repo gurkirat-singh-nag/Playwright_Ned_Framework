@@ -61,11 +61,11 @@ Every run's artifacts live under `artifacts/<slug>/` (e.g. `artifacts/kan-1/`, `
 - `agents/central-automation-orchestrator.agent.md` — entry-point router; classifies the request (Jira ID, Epic, Swagger, URL, failing test, etc.) and delegates to one specialist agent below. Never generates artifacts itself.
 - `agents/ui-automation-specialist.agent.md` — coordinates the 6-Skill UI pipeline above.
 - `agents/api-automation-specialist.agent.md` — same pattern for API tests (most of its Skills are declared but not yet implemented).
-- `agents/unified-test-healer.agent.md` — diagnoses a failing test and applies the smallest safe fix; delegates CI evidence gathering to `jenkins-analyzer`.
+- `agents/automation-healer-specialist.agent.md` — diagnoses a failing test and applies the smallest safe fix; delegates CI evidence gathering to `jenkins-analyzer`.
 - `agents/jenkins-analyzer.agent.md` — read-only Jenkins build analysis.
 - `agents/epic-to-user-stories.agent.md` — breaks a Jira Epic into candidate stories for the pipeline.
 - `skills/*/README.md` — one folder per pipeline phase (see table above), each documenting Purpose/Inputs/Outputs/Failure handling. Skills are shared across agents; no duplicated logic between them.
-- `prompts/*.prompt.md` — parameterized entry points bound to one agent: `start-test-automation` -> orchestrator, `generate-playwright-test` -> ui-automation-specialist, `generate-api-test` -> api-automation-specialist, `heal-playwright-test` -> unified-test-healer.
+- `prompts/*.prompt.md` — parameterized entry points bound to one agent: `start-test-automation` -> orchestrator, `generate-playwright-test` -> ui-automation-specialist, `generate-api-test` -> api-automation-specialist, `heal-playwright-test` -> automation-healer-specialist.
 - `instructions/*.instructions.md` — auto-attached conventions (via `applyTo` globs) for naming, artifact schemas, coding standards, and the Page Object / spec conventions described above.
 - `schemas/testcases.schema.json`, `templates/*` — JSON schema and Markdown templates each Skill's output must conform to.
 - `.vscode/mcp.json` — registers the Playwright MCP server (`@playwright/mcp`) used by `playwright-browser-exploration`, and an Atlassian MCP server for Jira/Confluence access used by `jira-story-analyzer`.

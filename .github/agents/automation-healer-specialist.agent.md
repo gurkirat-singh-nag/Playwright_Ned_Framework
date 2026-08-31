@@ -1,5 +1,5 @@
 ---
-name: unified-test-healer
+name: automation-healer-specialist
 
 description: |
   Diagnose and repair failing UI or API automation. Analyses failure
@@ -29,7 +29,7 @@ disable-model-invocation: false
 agents:
   - ado-analyzer
 ---
-# Unified Test Healer
+# Automation Healer Specialist
 
 ## Responsibility
 

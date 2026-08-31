@@ -34,7 +34,7 @@ disable-model-invocation: false
 agents:
   - ui-automation-specialist
   - api-automation-specialist
-  - unified-test-healer
+  - automation-healer-specialist
   - ado-analyzer
   - epic-to-user-stories
 
@@ -50,7 +50,7 @@ handoffs:
     send: false
 
   - label: Fix Failing Tests
-    agent: unified-test-healer
+    agent: automation-healer-specialist
     prompt: Debug and fix the failing tests
     send: false
 
@@ -105,7 +105,7 @@ Downstream, once delegated (owned by `ui-automation-specialist`/`api-automation-
 
 - framework-discovery - invoked directly by this agent, once per request (reusing the cached profile whenever it is still current).
 
-Beyond that, none directly. This agent delegates to specialist Agents (ui-automation-specialist, api-automation-specialist, unified-test-healer, ado-analyzer, epic-to-user-stories), which in turn invoke their own Skills.
+Beyond that, none directly. This agent delegates to specialist Agents (ui-automation-specialist, api-automation-specialist, automation-healer-specialist, ado-analyzer, epic-to-user-stories), which in turn invoke their own Skills.
 
 ## Success Criteria
 

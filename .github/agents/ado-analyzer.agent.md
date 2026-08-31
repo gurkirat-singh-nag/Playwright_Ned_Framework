@@ -4,7 +4,7 @@ name: ado-analyzer
 description: |
   Investigate Azure DevOps (ADO) CI pipeline build results, parse pipeline
   logs and test results, and summarize failures by category so they can be
-  routed to the Unified Test Healer or the responsible team.
+  routed to the Automation Healer Specialist or the responsible team.
 
 argument-hint: |
   Examples:
@@ -45,7 +45,7 @@ Investigate an Azure DevOps pipeline build/run and produce a categorized summary
 ## Outputs
 
 - Categorized failure summary
-- Recommended handoff per failure (e.g. Unified Test Healer, product team, environment team)
+- Recommended handoff per failure (e.g. Automation Healer Specialist, product team, environment team)
 
 ## Skills Used
 

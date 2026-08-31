@@ -12,7 +12,7 @@ Ensure the local workspace is synchronized with the remote repository before any
 
 ## Executes Before
 
-- All Agents (central-automation-orchestrator, ui-automation-specialist, api-automation-specialist, unified-test-healer, ado-analyzer, epic-to-user-stories)
+- All Agents (central-automation-orchestrator, ui-automation-specialist, api-automation-specialist, automation-healer-specialist, ado-analyzer, epic-to-user-stories)
 - All Skills (when invoked directly)
 
 ## Executes After
