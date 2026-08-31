@@ -105,6 +105,20 @@
         "assumptions": {
           "type": "array",
           "items": { "type": "string" }
+        },
+        "targetPage": {
+          "type": "string",
+          "description": "Primary page or screen this test case exercises, as named in exploration.md. UI-scoped test cases only."
+        },
+        "requiredPageObjects": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Page Object class names this test case depends on. Left empty by Test Case Documenter, populated by Page Object Generator."
+        },
+        "requiredApiClients": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "API client class names this test case depends on. Left empty by Test Case Documenter, populated by API Client Generator."
         }
       }
     }

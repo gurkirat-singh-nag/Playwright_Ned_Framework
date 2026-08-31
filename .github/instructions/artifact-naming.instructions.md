@@ -14,14 +14,19 @@ artifacts/<slug>/
 ├── test-design.json
 ├── test-validation.md
 ├── test-validation.json
-├── exploration.md
+├── reuse-decision.json          (UI pipeline only)
+├── api-reuse-decision.json      (API pipeline only)
+├── exploration.md               (UI pipeline only)
+├── api-exploration.md           (API pipeline only)
 ├── screenshots/
 ├── test-plan.md
 ├── test-cases.md
 ├── testcases.json
-├── pageobjects/
+├── pageobjects/                 (UI pipeline only)
 └── tests/
 ```
+
+`clients/` (API pipeline output) is written to the target repository's existing API client directory - `clients/`, `api/`, or `services/` - not under `artifacts/<slug>/`, mirroring how `pageobjects/` is written to the target repository's `page-objects/`, not into the per-request artifact folder.
 
 ## Slug Rules
 

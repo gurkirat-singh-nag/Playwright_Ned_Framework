@@ -4,7 +4,7 @@
 
 Identify the automation technology stack and repository structure - programming language, UI/API automation technology, test runner, automation architecture, build tooling, reporting, CI/CD, MCP configuration, and the location of key framework directories.
 
-**Framework Discovery identifies the automation technology and repository structure. It does not perform UI/API exploration.** That is the responsibility of later, specialized Skills (`playwright-browser-exploration` and the future API contract-analysis Skill).
+**Framework Discovery identifies the automation technology and repository structure. It does not perform UI/API exploration.** That is the responsibility of later, specialized Skills (`playwright-browser-exploration` and `api-contract-analyzer`).
 
 This Skill is code/repository discovery only. It never launches a browser or an MCP session, and it never calls a live API.
 

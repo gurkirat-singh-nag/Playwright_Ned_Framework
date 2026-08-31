@@ -30,12 +30,13 @@ existing    operation(s)    live API          │
    │             │           discovery        │
    └─────────────┴──────────────┴─────────────┘
                   ↓
-          API Contract Analysis / Client Generation / Test Script Generation
-          (existing test-generator-api Skills - still not yet implemented,
-           now scoped by the decision above rather than always running in full)
+          API Contract Analyzer / API Client Generator / API Test Script Generator
+          (see api-contract-analyzer/README.md, api-client-generator/README.md,
+           api-test-script-generator/README.md - each scoped by the decision above
+           rather than always running in full)
 ```
 
-Runs once per request, inside `test-generator-api` (see [test-generator-api.agent.md](../../agents/test-generator-api.agent.md)), reusing Test Architect and Test Validator exactly as built for UI - **not duplicated**. `test-generator-api` did not previously invoke either Skill at all (it predates them); this task wires it in for the first time.
+Runs once per request, inside `test-generator-api` (see [test-generator-api.agent.md](../../agents/test-generator-api.agent.md)), reusing Test Architect and Test Validator exactly as built for UI - **not duplicated**.
 
 ## Inputs
 
@@ -119,7 +120,7 @@ Confidence bar for `FULL_REUSE`/`PARTIAL_REUSE` is 75 (vs. 60 for the UI class i
 
 ## What This Skill Must NOT Do
 
-- Must NOT launch Playwright MCP, open a browser, take a screenshot, or perform live API exploration itself - it only decides whether those are needed next; the actual exploration stays the API contract-analysis Skill's job (still not yet implemented in this repo - see `test-generator-api.agent.md`).
+- Must NOT launch Playwright MCP, open a browser, take a screenshot, or perform live API exploration itself - it only decides whether those are needed next; the actual exploration stays `api-contract-analyzer`'s job (see [api-contract-analyzer/README.md](../api-contract-analyzer/README.md)).
 - Must NOT fetch a Swagger/OpenAPI document merely because a URL for one exists, when the existing implementation already fully satisfies the requirement.
 - Must NOT create a business-capability abstraction layer (`capabilities/login.json`, `capabilities/create.json`, etc.) - one file per real source class only, exactly like the UI class index.
 - Must NOT duplicate Test Architect or Test Validator - both are invoked as-is; this Skill only adds the reuse-decision step between them and generation.
@@ -136,7 +137,7 @@ Identical contract to the UI class index: the index is generated metadata, never
 
 ## Integration With The API Agent
 
-See [test-generator-api.agent.md](../../agents/test-generator-api.agent.md) for the exact pipeline position. Summary: Jira Story Analyzer → **Test Architect** (reused) → **Test Validator** (reused, gate - `BLOCKED` stops here, before this Skill even runs) → **API Capability Discovery** → conditional API Contract Analysis (existing stub, now scoped) → Test Plan Generator / Test Case Documenter (existing, shared with UI) → API Client Generation / API Test Script Generation (existing stubs, still not yet implemented - unchanged by this task).
+See [test-generator-api.agent.md](../../agents/test-generator-api.agent.md) for the exact pipeline position. Summary: Jira Story Analyzer → **Test Architect** (reused) → **Test Validator** (reused, gate - `BLOCKED` stops here, before this Skill even runs) → **API Capability Discovery** → conditional **API Contract Analyzer** → Test Plan Generator / Test Case Documenter (reused, shared with UI) → **API Client Generator** / **API Test Script Generator**.
 
 ## MCP / HTTP Calls
 
