@@ -12,7 +12,7 @@ Verify the workspace structure, required files, templates, instructions, Skills,
 
 ## Executes Before
 
-- All Agents (unified-test-orchestrator, test-generator-ui, test-generator-api, unified-test-healer, ado-analyzer, epic-to-user-stories)
+- All Agents (qa-dispatcher, test-generator-ui, test-generator-api, unified-test-healer, ado-analyzer, epic-to-user-stories)
 
 ## Executes After
 
@@ -64,7 +64,7 @@ Verify the workspace structure, required files, templates, instructions, Skills,
      - Validate required frontmatter fields: `name`, `description`
      - Check `useTool` restrictions if present
    - Expected agents:
-     - `unified-test-orchestrator.agent.md`
+     - `qa-dispatcher.agent.md`
      - `test-generator-ui.agent.md`
      - `test-generator-api.agent.md`
      - `unified-test-healer.agent.md`

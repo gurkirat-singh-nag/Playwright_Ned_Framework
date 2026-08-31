@@ -1,5 +1,5 @@
 ---
-name: unified-test-orchestrator
+name: qa-dispatcher
 
 description: |
   Intelligent test automation hub that accepts multiple input formats including
@@ -64,7 +64,7 @@ handoffs:
     prompt: Break down this epic into user stories
     send: false
 ---
-# Unified Test Orchestrator
+# QA Dispatcher
 
 ## Responsibility
 

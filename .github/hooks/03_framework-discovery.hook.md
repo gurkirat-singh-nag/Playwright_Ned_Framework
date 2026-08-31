@@ -12,7 +12,7 @@ Automatically detect the testing framework(s) in use within the workspace, ident
 
 ## Executes Before
 
-- All Agents (unified-test-orchestrator, test-generator-ui, test-generator-api, unified-test-healer)
+- All Agents (qa-dispatcher, test-generator-ui, test-generator-api, unified-test-healer)
 
 ## Executes After
 
