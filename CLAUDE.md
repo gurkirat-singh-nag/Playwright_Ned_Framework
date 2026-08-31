@@ -31,7 +31,7 @@ There is no lint/build/typecheck script configured. `pretest` (via npm lifecycle
 
 ## Agentic pipeline architecture (`.github/`)
 
-Before routing a request, `qa-dispatcher` runs the `framework-discovery` Skill (`node .github/skills/framework-discovery/detect.js`) to identify the repository's tech stack from static evidence only (`package.json`, config files, directory structure — never a browser/MCP session). Result is cached at `artifacts/indexes/framework-profile.json`, keyed by a signature hash of the evidence it read; only regenerated when that evidence changes. See [.github/skills/framework-discovery/README.md](.github/skills/framework-discovery/README.md).
+Before routing a request, `central-automation-orchestrator` runs the `framework-discovery` Skill (`node .github/skills/framework-discovery/detect.js`) to identify the repository's tech stack from static evidence only (`package.json`, config files, directory structure — never a browser/MCP session). Result is cached at `artifacts/indexes/framework-profile.json`, keyed by a signature hash of the evidence it read; only regenerated when that evidence changes. See [.github/skills/framework-discovery/README.md](.github/skills/framework-discovery/README.md).
 
 The scaffold implements a strict, one-directional artifact pipeline, each phase owned by a single-responsibility **Skill**, coordinated by a thin **Agent** that contains no generation logic itself:
 
@@ -58,7 +58,7 @@ Every stage above is checkpointed to `artifacts/<slug>/pipeline-state.json` via 
 
 Every run's artifacts live under `artifacts/<slug>/` (e.g. `artifacts/kan-1/`, `artifacts/kan-2/`), where `<slug>` matches the driving Jira story ID. No artifact is regenerated once it exists and remains valid.
 
-- `agents/qa-dispatcher.agent.md` — entry-point router; classifies the request (Jira ID, Epic, Swagger, URL, failing test, etc.) and delegates to one specialist agent below. Never generates artifacts itself.
+- `agents/central-automation-orchestrator.agent.md` — entry-point router; classifies the request (Jira ID, Epic, Swagger, URL, failing test, etc.) and delegates to one specialist agent below. Never generates artifacts itself.
 - `agents/test-generator-ui.agent.md` — coordinates the 6-Skill UI pipeline above.
 - `agents/test-generator-api.agent.md` — same pattern for API tests (most of its Skills are declared but not yet implemented).
 - `agents/unified-test-healer.agent.md` — diagnoses a failing test and applies the smallest safe fix; delegates CI evidence gathering to `jenkins-analyzer`.

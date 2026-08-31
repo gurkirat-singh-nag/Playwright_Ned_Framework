@@ -53,7 +53,7 @@ Every artifact is written under `artifacts/<slug>/` - see [naming.instructions.m
 
 | Agent | Responsibility |
 |---|---|
-| [qa-dispatcher](agents/qa-dispatcher.agent.md) | Understand requests and route to the correct specialist agent. Never generates tests. |
+| [central-automation-orchestrator](agents/central-automation-orchestrator.agent.md) | Understand requests and route to the correct specialist agent. Never generates tests. |
 | [test-generator-ui](agents/test-generator-ui.agent.md) | Coordinate the UI artifact pipeline via its eight Skills. |
 | [test-generator-api](agents/test-generator-api.agent.md) | Coordinate the API artifact pipeline: shares `test-architect`/`test-validator`/`test-plan-generator`/`test-case-documenter` with the UI pipeline, adds `api-capability-discovery`, `api-contract-analyzer`, `api-client-generator`, `api-test-script-generator`. |
 | [unified-test-healer](agents/unified-test-healer.agent.md) | Diagnose and apply the smallest safe fix to failing automation. |
@@ -64,7 +64,7 @@ Every artifact is written under `artifacts/<slug>/` - see [naming.instructions.m
 
 | Skill | Responsibility |
 |---|---|
-| [framework-discovery](skills/framework-discovery/README.md) | Repository → `artifacts/indexes/framework-profile.json` (language, UI/API framework, test runner, architecture, directories, reporting, CI, MCP). Code/repository discovery only - never launches a browser or MCP session. Invoked once per request by `qa-dispatcher`, before UI/API path selection. |
+| [framework-discovery](skills/framework-discovery/README.md) | Repository → `artifacts/indexes/framework-profile.json` (language, UI/API framework, test runner, architecture, directories, reporting, CI, MCP). Code/repository discovery only - never launches a browser or MCP session. Invoked once per request by `central-automation-orchestrator`, before UI/API path selection. |
 | [jira-story-analyzer](skills/jira-story-analyzer/README.md) | Jira/Confluence → `requirements.md`. |
 | [test-architect](skills/test-architect/README.md) | `requirements.md` + `framework-profile.json` → `test-design.md`/`test-design.json`: technology-neutral scenarios traceable to acceptance criteria, automation/manual classification, test data, risks. Reasoning/design only - no automation code, no MCP, no deep capability matching. Runs once per request, before Test Validator. |
 | [test-validator](skills/test-validator/README.md) | `test-design.json` → `test-validation.md`/`test-validation.json`: **GATE**. Validates completeness, traceability, internal consistency, duplication, automation feasibility, technology consistency, and artifact integrity (BLOCKED stops the pipeline before capability discovery/generation). No automation code, no MCP, no deep capability matching. Shared by both `test-generator-ui` and `test-generator-api` - not duplicated per project type. |

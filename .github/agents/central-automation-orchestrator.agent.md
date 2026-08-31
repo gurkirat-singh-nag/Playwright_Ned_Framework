@@ -1,5 +1,5 @@
 ---
-name: qa-dispatcher
+name: central-automation-orchestrator
 
 description: |
   Intelligent test automation hub that accepts multiple input formats including
@@ -64,7 +64,7 @@ handoffs:
     prompt: Break down this epic into user stories
     send: false
 ---
-# QA Dispatcher
+# Central Automation Orchestrator
 
 ## Responsibility
 

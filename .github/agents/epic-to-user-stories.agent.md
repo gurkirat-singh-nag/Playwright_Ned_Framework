@@ -49,7 +49,7 @@ Decompose a Jira Epic into a set of independently testable candidate user storie
 
 ## Skills Used
 
-None directly. Prepares input for the QA Dispatcher and downstream generator agents.
+None directly. Prepares input for the Central Automation Orchestrator and downstream generator agents.
 
 ## Success Criteria
 
