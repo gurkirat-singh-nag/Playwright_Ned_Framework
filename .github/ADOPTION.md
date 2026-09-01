@@ -122,7 +122,7 @@ Then write a minimal `playwright.config.js` (`testDir: './tests'`, a `baseURL`, 
 
    This is a one-time calibration per project - re-run the same prompt only if your team's conventions change later. It's the difference between generated code that looks like your team wrote it and code that looks copy-pasted from a different one.
 
-4. **Nothing to generate or seed for the reuse index.** It (see §6) starts empty and that's a valid state - it just means the first few stories explore the UI/API fully instead of reusing. You do not need to run a generator or wait for anything to index your existing code before you start.
+4. **Nothing to generate or seed for the reuse index if you're starting from zero.** It (see §6) starts empty and that's a valid state - it just means the first few stories explore the UI/API fully instead of reusing. **If you already have real Page Objects/clients the scaffold didn't create**, this is not a no-op step for you - skipping it risks the pipeline generating duplicates of pages you already have, because nothing tells it those pages already exist. See "Bootstrapping The Index For Existing Code" in §6 for a ready-to-paste prompt and guidance on which pages are actually worth indexing upfront.
 5. **Re-run framework discovery once your dependencies are installed**: `node .github/skills/framework-discovery/detect.js --force`, so `artifacts/indexes/framework-profile.json` reflects your actual stack rather than a stale or absent profile.
 6. **Verify the setup actually works, without needing an agent at all.** The scaffold's deterministic pieces are plain Node scripts you can run directly from a terminal - useful both as a first-time sanity check and later for debugging:
 
@@ -175,6 +175,62 @@ This design is why the scaffold works regardless of your project's language (Jav
 **Do not skip the `description` field on each method - it's the single biggest silent-failure risk in this whole scaffold.** The reuse search scores matches by keyword overlap against the method's `name` *and* `description` together. An index entry with only `{ "name": "goto", "params": [] }` and no description will frequently under-match a real, correct requirement - verified directly: the same story scored 0% (recommending full exploration) against a description-less index and 100% (full reuse, no exploration) against the identical index with one sentence of description added per method. Write a real one-line description for every method, every time - `"Navigate to the login page"`, not a placeholder.
 
 Consider adding one line to your PR template or review checklist: *"If this PR adds/changes/removes a Page Object or client method, is its `index/` entry updated too?"* That's a human process nudge, not tooling - deliberately so, since this scaffold has no automated drift detection for the index by design (see above).
+
+### Going From Zero To Useful
+
+`index/` being empty on day one isn't a problem to solve upfront - in the common case, don't do anything and let it grow on its own:
+
+1. **Story 1 runs** against a page with no index entry → 0% coverage → full exploration → `page-object-generator` creates the Page Object *and* writes its index entry as part of the same output. You never authored anything by hand.
+2. **Story 2** reuses that page (partial or full reuse, exploration skipped or scoped down) or hits a new page (same as story 1: explore, generate, index gets a new entry).
+3. Repeat. Coverage isn't one global number climbing over time - it's per-page. Pages every story touches (login, shared nav, a common modal) become highly reusable fast because they keep getting hit; a page touched once and never again just has one entry and never saves you anything further, which is fine - it was never going to.
+
+**The one case that needs a deliberate decision**: adopting into a codebase that already has real Page Objects/clients the scaffold didn't create. Those have no index entries yet, and unlike the greenfield case, that's a real risk, not a neutral starting point - a story that could reuse an existing `loginPage.js` will score 0% (nothing to match against) and may generate a *duplicate* Page Object instead of reusing the real one.
+
+Two ways to handle it, pick based on how central the page is - don't try to index your entire existing suite on day one, that wastes effort on pages that may never come up again:
+
+- **Just-in-time (default for most classes)**: index a class right before a story is about to touch it, in the same PR as that story.
+- **Proactive, only for high-traffic pages**: if you already know login/dashboard/shared-nav will be hit by nearly every story, index those specific classes in one deliberate pass before your first real story.
+
+Either way, use this prompt rather than writing entries by hand - list the specific files you want indexed this pass (a handful of high-traffic pages, or the ones your next story needs):
+
+```
+Read the following existing Page Object / API client classes and write or
+update their matching index/ entry for each - do not touch anything else
+in the repo:
+
+<list the specific file paths here, e.g. page-objects/loginPage.js,
+page-objects/dashboardPage.js - do not say "all of them" for a large
+existing suite; index a deliberately chosen handful per pass>
+
+For each class listed:
+
+1. Read the actual class source - do not guess methods from the file name
+   or from any similarly-named class elsewhere.
+
+2. List every public, test-facing method with its real parameters (name
+   and order, not types) exactly as defined. Do NOT include private/
+   internal helper methods not meant to be called from a test.
+
+3. Write one real, specific, one-line description per method describing
+   what it DOES, not restating its name - "Navigate to the login page",
+   not "Goto method". A vague or missing description is the single
+   biggest reason the reuse search will later fail to match a real,
+   correct requirement against this method - see the description-field
+   warning above.
+
+4. Write (or overwrite) the matching file under index/page-objects/
+   (or index/clients/, index/api/, index/services/, matching wherever
+   the class actually lives) named <className>.json, following the shape
+   in page-object.instructions.md / api-client.instructions.md:
+   { "className", "file", "methods": [{ "name", "params", "description" }] }.
+
+5. Do NOT invent methods that don't exist in the source.
+
+6. Show me a summary of what you indexed (class name, method count) before
+   I review it. Do not commit.
+```
+
+This is the same "deep-read, then write it down" shape as the calibration prompt in §3 - the difference is scope: calibration updates the *instructions* files once per project, this updates the *index* files, repeatedly, one deliberate batch at a time as you decide a page is worth indexing.
 
 ## 7. Healing A Failing Test
 
