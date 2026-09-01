@@ -16,7 +16,7 @@ Convert `test-plan.md` into human-readable manual test cases and the machine-rea
 ## Artifacts Produced
 
 - `test-cases.md` - structure defined in [test-cases-template.md](../../templates/test-cases-template.md).
-- `testcases.json` - validated against [testcases.schema.json](../../templates/testcases.schema.json); each test case includes Story ID, Title, Category, Priority, Preconditions, Steps, Expected Results, Tags, Dependencies, Target Page, and Required Page Objects.
+- `testcases.json` - validated against [testcases.schema.json](../../schemas/testcases.schema.json); each test case includes Title, Type, Priority, Preconditions, Steps, Expected Result, Linked Requirement(s), Linked Scenario, and Automation Status. See [artifact-schemas.instructions.md](../../instructions/artifact-schemas.instructions.md) for the full field contract.
 
 ## Artifacts Consumed
 
@@ -28,7 +28,7 @@ Convert `test-plan.md` into human-readable manual test cases and the machine-rea
 2. If valid, skip execution and reuse the existing files.
 3. Otherwise, confirm `test-plan.md` exists; if missing, stop and report that Test Plan Generator must run first.
 4. Generate exactly one test case per Scenario ID in `test-plan.md`, assigning a stable Test Case ID (`TC-###`).
-5. Populate `targetPage` from `exploration.md` context already summarised in the scenario, and leave `requiredPageObjects` empty until Page Object Generator runs.
+5. For UI-scoped scenarios, populate `targetPage` from `exploration.md` context already summarised in the scenario, and leave `requiredPageObjects` empty until Page Object Generator runs. For API-scoped scenarios, leave `requiredApiClients` empty until API Client Generator runs.
 6. Write matching `test-cases.md` and `testcases.json`.
 
 ## Failure Handling

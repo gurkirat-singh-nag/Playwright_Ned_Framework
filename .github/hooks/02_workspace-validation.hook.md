@@ -12,7 +12,7 @@ Verify the workspace structure, required files, templates, instructions, Skills,
 
 ## Executes Before
 
-- All Agents (unified-test-orchestrator, test-generator-ui, test-generator-api, unified-test-healer, jenkins-analyzer, epic-to-user-stories)
+- All Agents (central-automation-orchestrator, ui-automation-specialist, api-automation-specialist, automation-healer-specialist, ci-analyzer-specialist, epic-to-user-stories)
 
 ## Executes After
 
@@ -64,11 +64,11 @@ Verify the workspace structure, required files, templates, instructions, Skills,
      - Validate required frontmatter fields: `name`, `description`
      - Check `useTool` restrictions if present
    - Expected agents:
-     - `unified-test-orchestrator.agent.md`
-     - `test-generator-ui.agent.md`
-     - `test-generator-api.agent.md`
-     - `unified-test-healer.agent.md`
-     - `jenkins-analyzer.agent.md`
+     - `central-automation-orchestrator.agent.md`
+     - `ui-automation-specialist.agent.md`
+     - `api-automation-specialist.agent.md`
+     - `automation-healer-specialist.agent.md`
+     - `ci-analyzer-specialist.agent.md`
      - `epic-to-user-stories.agent.md`
    - Record missing agents
 

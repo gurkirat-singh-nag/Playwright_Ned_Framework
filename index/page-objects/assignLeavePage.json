@@ -1,26 +1,22 @@
 {
   "className": "assignLeavePage",
   "file": "page-objects/assignLeavePage.js",
-  "type": "PageObject",
   "methods": [
     {
       "name": "assignLeave",
       "params": [
         "leaveData"
       ],
-      "async": true,
       "description": "Fill complete Assign Leave form and submit"
     },
     {
       "name": "clickAssign",
       "params": [],
-      "async": true,
       "description": "Click Assign button to submit form"
     },
     {
       "name": "confirmAssignmentIfPrompted",
       "params": [],
-      "async": true,
       "description": "Confirm the \"Employee does not have sufficient leave balance\" dialog if it"
     },
     {
@@ -28,19 +24,16 @@
       "params": [
         "comments"
       ],
-      "async": true,
       "description": "Enter optional comments"
     },
     {
       "name": "getLeaveBalanceText",
       "params": [],
-      "async": true,
       "description": "Get Leave Balance text for assertion"
     },
     {
       "name": "isAssignLeavePageDisplayed",
       "params": [],
-      "async": true,
       "description": "Verify Assign Leave page is displayed"
     },
     {
@@ -48,19 +41,16 @@
       "params": [
         "expectedName"
       ],
-      "async": true,
       "description": "Verify employee name field is populated with selected employee"
     },
     {
       "name": "logout",
       "params": [],
-      "async": true,
       "description": "Logout from application"
     },
     {
       "name": "navigateToAssignLeave",
       "params": [],
-      "async": true,
       "description": "Navigate to Assign Leave page from Dashboard"
     },
     {
@@ -68,7 +58,6 @@
       "params": [
         "searchTerm"
       ],
-      "async": true,
       "description": "Search for employee by typing search term"
     },
     {
@@ -76,13 +65,11 @@
       "params": [
         "employeeName"
       ],
-      "async": true,
       "description": "Select employee from autocomplete dropdown"
     },
     {
       "name": "selectFirstEmployeeFromDropdown",
       "params": [],
-      "async": true,
       "description": "Select the first employee from autocomplete dropdown"
     },
     {
@@ -90,7 +77,6 @@
       "params": [
         "leaveTypeName"
       ],
-      "async": true,
       "description": "Select leave type from dropdown"
     },
     {
@@ -98,7 +84,6 @@
       "params": [
         "date"
       ],
-      "async": true,
       "description": "Set From Date using date picker"
     },
     {
@@ -106,13 +91,11 @@
       "params": [
         "date"
       ],
-      "async": true,
       "description": "Set To Date using date picker"
     },
     {
       "name": "verifyAssignmentSuccess",
       "params": [],
-      "async": true,
       "description": "Verify the \"Successfully Saved\" toast appeared after a leave assignment."
     }
   ],
@@ -133,6 +116,5 @@
     "successToast",
     "toDateCalendarIcon",
     "toDateField"
-  ],
-  "lastUpdated": "2026-08-21T08:35:02.172Z"
+  ]
 }

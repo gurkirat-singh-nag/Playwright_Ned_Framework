@@ -7,13 +7,13 @@ Search the workspace for existing artifacts, tests, Page Objects, API clients, a
 ## Trigger
 
 - **Type**: Pre-Hook (before generation)
-- **Scope**: Generation Agents (test-generator-ui, test-generator-api)
+- **Scope**: Generation Agents (ui-automation-specialist, api-automation-specialist)
 - **Execution Point**: After Framework Discovery Hook, before Specialist Agent invokes generation Skills
 
 ## Executes Before
 
-- test-generator-ui (before page-object-generator, test-script-generator)
-- test-generator-api (before api-client-generator, api-test-script-generator)
+- ui-automation-specialist (before page-object-generator, test-script-generator)
+- api-automation-specialist (before api-client-generator, api-test-script-generator)
 
 ## Executes After
 
@@ -161,11 +161,11 @@ Search the workspace for existing artifacts, tests, Page Objects, API clients, a
    
    - **Example Output**:
      ```
-     [Method-Level Detection] Target method: "assignLeave"
-     [Method-Level Detection] ✓ Found exact match: assignLeavePage.assignLeave(leaveData)
+     [Method-Level Detection] Target method: "confirmOrder"
+     [Method-Level Detection] ✓ Found exact match: checkoutPage.confirmOrder()
      [Method-Level Detection] Recommendation: REUSE existing method
-     [Method-Level Detection] File: page-objects/assignLeavePage.js
-     [Method-Level Detection] Signature: async assignLeave(leaveData)
+     [Method-Level Detection] File: page-objects/checkoutPage.js
+     [Method-Level Detection] Signature: async confirmOrder()
      [Method-Level Detection] ⚡ Skip generation, import existing method
      ```
 

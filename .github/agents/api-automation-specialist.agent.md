@@ -1,5 +1,5 @@
 ---
-name: test-generator-api
+name: api-automation-specialist
 
 description: |
   Generate manual test cases and API automation from Swagger/OpenAPI
@@ -26,7 +26,7 @@ user-invocable: true
 
 disable-model-invocation: false
 ---
-# API Test Generator
+# API Automation Specialist
 
 ## Responsibility
 
@@ -38,15 +38,15 @@ Coordinate the full API test lifecycle - requirements, test design, test design 
 2. Generate Requirements - invoke the Jira Story Analyzer Skill when the input is a Jira story.
 3. Design Tests - invoke the **Test Architect** Skill (reused as-is from the UI pipeline, not duplicated - see [test-architect/README.md](../skills/test-architect/README.md)): `requirements.md` + `framework-profile.json` → `test-design.md`/`test-design.json`. Scenarios are classified `technology: "API"`/`"both"`/`"UI"`/`"integration"`/`"manual-only"`; only `"API"`/`"both"` scenarios are this agent's concern from here on.
 4. Validate Test Design - invoke the **Test Validator** Skill (reused as-is, not duplicated - see [test-validator/README.md](../skills/test-validator/README.md)): `test-design.json` → `test-validation.md`/`test-validation.json`. **GATE**: `status: BLOCKED` stops the pipeline immediately - do not proceed to API Capability Discovery or generation. `PASS_WITH_WARNINGS` continues, carrying warnings forward.
-5. API Capability Discovery - invoke the **API Capability Discovery** Skill (see [api-capability-discovery/README.md](../skills/api-capability-discovery/README.md), only reached if Step 4 did not block): search `artifacts/indexes/api/` for existing API clients/methods that already satisfy each API-scoped scenario's operations, and write `artifacts/<slug>/api-reuse-decision.json`. Per scenario: `FULL_REUSE` → skip Step 6 entirely for that scenario, generate directly from the existing method(s); `PARTIAL_REUSE` → scope Step 6 to only the `missing[]` operations; `NO_REUSE` → Step 6 proceeds in full.
-6. Analyse API Contract - invoke an API contract analysis Skill (Swagger/OpenAPI parsing, endpoint behaviour, schemas, authentication), scoped by Step 5's decision as above. **Not yet implemented** (unchanged by this task).
+5. API Capability Discovery - invoke the **API Capability Discovery** Skill (see [api-capability-discovery/README.md](../skills/api-capability-discovery/README.md), only reached if Step 4 did not block): search `index/<clients|api|services>/*.json` files (mirroring each client class in `clients/`, `api/`, or `services/`) for existing API clients/methods that already satisfy each API-scoped scenario's operations, and write `artifacts/<slug>/api-reuse-decision.json`. Per scenario: `FULL_REUSE` → skip Step 6 entirely for that scenario, generate directly from the existing method(s); `PARTIAL_REUSE` → scope Step 6 to only the `missing[]` operations; `NO_REUSE` → Step 6 proceeds in full.
+6. Analyse API Contract - invoke the **API Contract Analyzer** Skill (see [api-contract-analyzer/README.md](../skills/api-contract-analyzer/README.md)): Swagger/OpenAPI parsing or requirements-text contract extraction (endpoint behaviour, schemas, authentication), scoped by Step 5's decision as above, producing `api-exploration.md`.
 7. Generate Test Plan - invoke the Test Plan Generator Skill (reused, shared with the UI pipeline).
 8. Generate Manual Test Cases - invoke the Test Case Documenter Skill (reused, shared with the UI pipeline).
-9. Generate API Clients - invoke an API client/request-builder generation Skill; for `FULL_REUSE`/`PARTIAL_REUSE` scenarios, extend/reuse the existing client class identified in Step 5 rather than creating a duplicate. **Not yet implemented** (unchanged by this task).
-10. Generate Automation - invoke an API test script generation Skill. **Not yet implemented** (unchanged by this task).
+9. Generate API Clients - invoke the **API Client Generator** Skill (see [api-client-generator/README.md](../skills/api-client-generator/README.md)); for `FULL_REUSE`/`PARTIAL_REUSE` scenarios, extend/reuse the existing client class identified in Step 5 rather than creating a duplicate.
+10. Generate Automation - invoke the **API Test Script Generator** Skill (see [api-test-script-generator/README.md](../skills/api-test-script-generator/README.md)).
 11. Validate Output - confirm the full artifact chain is complete and consistent.
 
-At Step 1, if `artifacts/<slug>/pipeline-state.json` exists, call `resumePlan(slug)` (see [pipeline-state/README.md](../skills/pipeline-state/README.md)) and resume at the stage it returns rather than re-running from Step 2. After each step completes, call `checkpoint(slug, stageName)` - same shared utility as `test-generator-ui`, not a second state mechanism. `capability-discovery`'s stage checkpoint accepts either `reuse-decision.json` (UI) or `api-reuse-decision.json` (this agent), so a `FULL_REUSE` decision surviving a restart works identically to the UI pipeline's `FULL_REUSE`/exploration-`SKIPPED` behavior.
+At Step 1, if `artifacts/<slug>/pipeline-state.json` exists, call `resumePlan(slug)` (see [pipeline-state/README.md](../skills/pipeline-state/README.md)) and resume at the stage it returns rather than re-running from Step 2. After each step completes, call `checkpoint(slug, stageName)` - same shared utility as `ui-automation-specialist`, not a second state mechanism. `capability-discovery`'s stage checkpoint accepts either `reuse-decision.json` (UI) or `api-reuse-decision.json` (this agent), so a `FULL_REUSE` decision surviving a restart works identically to the UI pipeline's `FULL_REUSE`/exploration-`SKIPPED` behavior.
 
 ## Inputs
 
@@ -63,7 +63,7 @@ At Step 1, if `artifacts/<slug>/pipeline-state.json` exists, call `resumePlan(sl
 - `api-exploration.md`
 - `test-plan.md`
 - `test-cases.md` and `testcases.json`
-- `clients/`
+- `clients/` (plus a mirrored `index/clients/<className>.json` per client class)
 - `tests/`
 
 ## Skills Used
@@ -72,15 +72,14 @@ At Step 1, if `artifacts/<slug>/pipeline-state.json` exists, call `resumePlan(sl
 - test-architect (reused from the UI pipeline)
 - test-validator (reused from the UI pipeline)
 - api-capability-discovery
+- api-contract-analyzer
 - test-plan-generator
 - test-case-documenter
-- API contract analysis Skill (not yet implemented)
-- API client generation Skill (not yet implemented)
-- API test script generation Skill (not yet implemented)
+- api-client-generator
+- api-test-script-generator
 
 ## Success Criteria
 
-- Every artifact for which a Skill exists is produced in order.
-- Phases with no implemented Skill are explicitly flagged as pending rather than fabricated.
+- Every artifact in the pipeline is produced in order.
 - The pipeline never proceeds past a Test Validator `status: BLOCKED` - no API Capability Discovery, contract analysis, or generation Skill runs after a block.
 - API Capability Discovery never claims `FULL_REUSE`/`PARTIAL_REUSE` from method-name similarity alone (see api-capability-discovery/README.md's No False Positives rule), and Swagger/live API exploration never runs for a scenario already resolved as `FULL_REUSE`.

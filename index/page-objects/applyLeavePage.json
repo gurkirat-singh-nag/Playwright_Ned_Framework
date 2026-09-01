@@ -1,18 +1,15 @@
 {
   "className": "applyLeavePage",
   "file": "page-objects/applyLeavePage.js",
-  "type": "PageObject",
   "methods": [
     {
       "name": "clickApply",
       "params": [],
-      "async": true,
       "description": "Click Apply button to submit the leave request"
     },
     {
       "name": "clickLogout",
       "params": [],
-      "async": true,
       "description": "Click Logout option from profile menu"
     },
     {
@@ -20,31 +17,26 @@
       "params": [
         "comments"
       ],
-      "async": true,
       "description": "Enter comments"
     },
     {
       "name": "getLeaveBalance",
       "params": [],
-      "async": true,
       "description": "Get the leave balance text"
     },
     {
       "name": "goto",
       "params": [],
-      "async": true,
       "description": "Navigate directly to Apply Leave page (requires authentication)"
     },
     {
       "name": "logout",
       "params": [],
-      "async": true,
       "description": "Complete logout flow: open profile menu and click logout"
     },
     {
       "name": "openProfileMenu",
       "params": [],
-      "async": true,
       "description": "Open profile dropdown menu"
     },
     {
@@ -52,7 +44,6 @@
       "params": [
         "leaveTypeName"
       ],
-      "async": true,
       "description": "Select leave type from dropdown"
     },
     {
@@ -60,7 +51,6 @@
       "params": [
         "date"
       ],
-      "async": true,
       "description": "Set From Date"
     },
     {
@@ -68,7 +58,6 @@
       "params": [
         "date"
       ],
-      "async": true,
       "description": "Set To Date"
     },
     {
@@ -76,13 +65,11 @@
       "params": [
         "expectedBalance"
       ],
-      "async": true,
       "description": "Verify leave balance displays the expected value"
     },
     {
       "name": "waitForPageLoad",
       "params": [],
-      "async": true,
       "description": "Wait for Apply Leave page to be fully loaded"
     }
   ],
@@ -96,6 +83,5 @@
     "logoutMenuItem",
     "profilePicture",
     "toDateField"
-  ],
-  "lastUpdated": "2026-08-21T08:35:02.166Z"
+  ]
 }

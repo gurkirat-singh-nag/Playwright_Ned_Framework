@@ -25,7 +25,7 @@ One file per story: `artifacts/<slug>/pipeline-state.json`. No `.agent-01-comple
 
 ```json
 {
-  "story": "KAN-1",
+  "story": "PROJ-1234",
   "status": "NOT_STARTED | IN_PROGRESS | COMPLETED | FAILED | BLOCKED",
   "currentStage": "capability-discovery",
   "stages": {
@@ -70,7 +70,7 @@ The last three are real entries in `STAGE_ORDER`/the schema (the state model sup
 
 A stage becomes `COMPLETED` **only** via `evaluateStage()` re-checking its actual artifact on disk - never by an agent merely announcing it started. Schema validation for `test-design.json` reuses [test-validator/validate.js](../test-validator/validate.js)'s `validateAgainstSchema()` directly (`require('../test-validator/validate.js')`) - not a second schema checker.
 
-**Critical subtlety, found via real testing against KAN-1's actual BLOCKED `test-validation.json`**: a well-formed `test-validation.json` whose `status` is `BLOCKED` is *not* a completed stage, even though the JSON itself parses and validates fine. `evaluateStage()` distinguishes "artifact is well-formed" from "the pipeline may proceed": `test-validation`'s validator returns `blocked: true` in that case, which `evaluateStage()` turns into a `BLOCKED` stage entry (not `COMPLETED`), and `checkpoint()`/`resumePlan()` propagate that into `state.status = 'BLOCKED'` without touching `currentStage`. This was an actual bug caught while validating TEST 2 against real data, not a hypothetical - see Validation below.
+**Critical subtlety, found via real testing against an actual BLOCKED `test-validation.json`**: a well-formed `test-validation.json` whose `status` is `BLOCKED` is *not* a completed stage, even though the JSON itself parses and validates fine. `evaluateStage()` distinguishes "artifact is well-formed" from "the pipeline may proceed": `test-validation`'s validator returns `blocked: true` in that case, which `evaluateStage()` turns into a `BLOCKED` stage entry (not `COMPLETED`), and `checkpoint()`/`resumePlan()` propagate that into `state.status = 'BLOCKED'` without touching `currentStage`. This was an actual bug caught while validating TEST 2 against real data, not a hypothetical - see Validation below.
 
 ## Resume Logic
 
@@ -80,7 +80,7 @@ A stage becomes `COMPLETED` **only** via `evaluateStage()` re-checking its actua
 3. `nextStage` = the first stage that is neither `COMPLETED` nor `SKIPPED`.
 4. Overall `status` = `BLOCKED` if `test-validation` is blocked, else `IN_PROGRESS`/`COMPLETED` based on whether `nextStage` exists.
 
-Verified against real KAN-1 state: `story-analysis`, `framework-discovery`, `test-architecture` stay `COMPLETED` (not rerun); `nextStage` correctly resolves to `test-validation` for retry, never advancing to `capability-discovery`.
+Verified against a real completed pipeline run's state: `story-analysis`, `framework-discovery`, `test-architecture` stay `COMPLETED` (not rerun); `nextStage` correctly resolves to `test-validation` for retry, never advancing to `capability-discovery`.
 
 ## Invalidation
 
@@ -108,8 +108,8 @@ Recorded exactly as specified: `state.status = 'BLOCKED'`, `state.currentStage =
 
 Each existing agent checkpoints at the Skill boundaries it already has - no agent redesign, no new Skill invocations added beyond what Prompts 2-4 already wired in:
 
-- `test-generator-ui.agent.md` / `test-generator-api.agent.md`: after each Skill's "Verify Output" step (already part of both agents' existing per-Skill loop), call `checkpoint(slug, stageName)`. Before invoking a Skill, call `resumePlan(slug)` (or trust the agent's own existing "Skip If Valid" artifact check, which `evaluateStage()` now formalizes into a written record) to decide whether to skip it.
-- `unified-test-orchestrator.agent.md`: unchanged - it does not own the per-story pipeline and does not need pipeline-state awareness, consistent with its existing "no pipeline artifact" boundary (see `CLAUDE.md`/agent docs from Prompt 1-4).
+- `ui-automation-specialist.agent.md` / `api-automation-specialist.agent.md`: after each Skill's "Verify Output" step (already part of both agents' existing per-Skill loop), call `checkpoint(slug, stageName)`. Before invoking a Skill, call `resumePlan(slug)` (or trust the agent's own existing "Skip If Valid" artifact check, which `evaluateStage()` now formalizes into a written record) to decide whether to skip it.
+- `central-automation-orchestrator.agent.md`: unchanged - it does not own the per-story pipeline and does not need pipeline-state awareness, consistent with its existing "no pipeline artifact" boundary (see `CLAUDE.md`/agent docs from Prompt 1-4).
 - Test Validator's `BLOCKED` gate (already enforced by the agent's own "never proceed past BLOCKED" rule from Prompt 3) is now also durable across a restart via `pipeline-state.json`, not just enforced within a single run.
 
 ## Git / Artifacts
@@ -127,7 +127,7 @@ Each existing agent checkpoints at the Skill boundaries it already has - no agen
 ## Logging
 
 ```
-[Pipeline State] kan-1: story-analysis COMPLETED, framework-discovery COMPLETED,
+[Pipeline State] proj-1234: story-analysis COMPLETED, framework-discovery COMPLETED,
                  test-architecture COMPLETED, test-validation BLOCKED
 [Pipeline State] Overall status: BLOCKED - halting before capability-discovery
 [Pipeline State] Resume: revalidating test-validation.json...

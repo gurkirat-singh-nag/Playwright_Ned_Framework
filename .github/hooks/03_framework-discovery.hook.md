@@ -12,7 +12,7 @@ Automatically detect the testing framework(s) in use within the workspace, ident
 
 ## Executes Before
 
-- All Agents (unified-test-orchestrator, test-generator-ui, test-generator-api, unified-test-healer)
+- All Agents (central-automation-orchestrator, ui-automation-specialist, api-automation-specialist, automation-healer-specialist)
 
 ## Executes After
 
@@ -172,75 +172,46 @@ Automatically detect the testing framework(s) in use within the workspace, ident
      - Update Playwright to latest stable (v<latest>)
      ```
 
-10. **Generate Class Index** (Simplified Architecture v3.0)
-    - **Purpose**: Build the direct Page Object class/method index consulted before browser exploration - no business-capability abstraction layer.
+10. **Locate Class Index** (Simplified Architecture v4.0)
+    - **Purpose**: Confirm the reuse index consulted before browser exploration is reachable - no business-capability abstraction layer, no generation step.
     - **When**: After framework detection, before returning analysis object
     - **Process**:
-      1. Check if `artifacts/indexes/_manifest.json` exists and is fresh (< 1 hour old)
-      2. If stale or missing, run: `node .github/capabilities/generator.js`
-      3. Scan `page-objects/` for Page Object classes (class name, file path, public methods, parameters, JSDoc description, constructor locators)
-      4. Write per-class files to `artifacts/indexes/classes/<className>.json` and update `artifacts/indexes/_manifest.json`
-      5. Do NOT generate `artifacts/indexes/capabilities/` or any business-capability abstraction file - the class index is the single source of reuse metadata
-      6. Report statistics: classes found, methods extracted
+      1. Count `index/page-objects/*.json` files present.
+      2. Report the count as-is - zero is a valid state (nothing to reuse yet), not an error.
+      3. Do NOT generate, parse, or regenerate anything here - index files are hand-authored (or AI-assisted), mirroring `page-objects/` under `index/page-objects/`; see [02.5_intelligent-reuse-enforcement.hook.md](02.5_intelligent-reuse-enforcement.hook.md).
     - **Benefits**:
       - ✅ Agents discover existing Page Objects/methods before Playwright MCP exploration
       - ✅ Eliminates duplicate Page Objects and redundant browser sessions
-      - ✅ Lightweight, deterministic, regenerated directly from source (never accumulates stale entries)
+      - ✅ Works for any source language, since nothing here parses source code
     - **Outputs**:
-      - `artifacts/indexes/_manifest.json`
-      - `artifacts/indexes/classes/*.json`
-      - Log: "✓ Class index generated (X classes, Y methods)"
-    - **Error Handling**:
-      - If generator fails: WARN, continue without a class index
-      - Agents will fall back to full Playwright MCP exploration
-    - **Documentation**: See `.github/hooks/02.5_intelligent-reuse-enforcement.hook.md` and `artifacts/validation/QUICK_REFERENCE.md`
+      - Log: "✓ Found X class index file(s) in index/page-objects/"
+    - **Documentation**: See `.github/hooks/02.5_intelligent-reuse-enforcement.hook.md`
 
-10.5. **Enforce Class Index Usage**
-    - **Purpose**: Ensure agents and Skills actually USE the generated class index before exploring.
+10.5. **Schedule Reuse Enforcement**
+    - **Purpose**: Ensure agents and Skills actually consult the class index before exploring, regardless of how many (or how few) index files currently exist.
     - **Process**:
       ```javascript
-      const indexExists = fs.existsSync('artifacts/indexes/_manifest.json');
-
-      if (!indexExists) {
-        WARN: "Class index missing - regenerating...";
-        runSync('node .github/capabilities/generator.js');
-
-        if (!fs.existsSync('artifacts/indexes/_manifest.json')) {
-          ERROR: "Failed to generate class index - falling back to full exploration";
-          frameworkAnalysis.class_index_enabled = false;
-        } else {
-          frameworkAnalysis.class_index_enabled = true;
-        }
-      } else {
-        frameworkAnalysis.class_index_enabled = true;
-      }
-
       if (frameworkAnalysis.ui_frameworks.length > 0) {
         frameworkAnalysis.reuse_enforcement_required = true;
         frameworkAnalysis.next_hook = '02.5_intelligent-reuse-enforcement.hook.md';
 
-        console.log('[Framework Discovery] ✓ Class index enabled');
         console.log('[Framework Discovery] ⚡ Next: Intelligent reuse enforcement hook will run before exploration');
       }
       ```
 
     - **Enforcement Rules**:
-      - ✅ **Class index MUST exist** before an agent proceeds to generation
-      - ✅ **Intelligent reuse enforcement hook MUST run** before browser exploration
+      - ✅ **Intelligent reuse enforcement hook MUST run** before browser exploration, even when zero index files exist (it will correctly recommend EXPLORE with 0% coverage)
       - ✅ **Agent MUST respect** the hook's recommendation (REUSE/PARTIAL/EXPLORE)
-      - ⚠️ **Fallback allowed** only if index generation fails after retry
 
     - **Agent Contract**:
       ```javascript
       {
         ui_frameworks: [...],
         api_frameworks: [...],
-        class_index_enabled: true,
         reuse_enforcement_required: true,
         class_index: {
-          manifest: 'artifacts/indexes/_manifest.json',
-          last_generated: '2026-08-21T00:51:35.431Z',
-          stats: { classes: 4, methods: 46 }
+          location: 'index/page-objects/*.json',
+          filesFound: 5
         },
         next_hook: '02.5_intelligent-reuse-enforcement.hook.md'
       }
@@ -248,8 +219,7 @@ Automatically detect the testing framework(s) in use within the workspace, ident
 
     - **Logging**:
       ```
-      [Framework Discovery] Step 10.5: Enforcing class index usage...
-      [Framework Discovery] ✓ Class index validated
+      [Framework Discovery] Step 10.5: Scheduling reuse enforcement...
       [Framework Discovery] ✓ Intelligent reuse enforcement hook scheduled
       [Framework Discovery] ⚡ Agents MUST invoke 02.5_intelligent-reuse-enforcement.hook.md before exploration
       ```
@@ -260,7 +230,7 @@ Automatically detect the testing framework(s) in use within the workspace, ident
 
 11. **Return Framework Analysis Object**
     - Populate structured object with discovery results
-    - Include capability index metadata (if generated)
+    - Include class index file count from Step 10
     - Make available to downstream hooks and agents
 
 ## Validation Rules

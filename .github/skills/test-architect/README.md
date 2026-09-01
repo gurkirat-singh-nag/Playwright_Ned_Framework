@@ -24,7 +24,7 @@ jira-story-analyzer  →  requirements.md
         page-object-generator / test-script-generator
 ```
 
-Runs **once per request**, immediately after `requirements.md` exists and before the reuse-enforcement hook. It is invoked by whichever agent owns the per-story pipeline (`test-generator-ui` today; `test-generator-api` once its Skills are implemented) - not re-invoked per downstream Skill. See [test-generator-ui.agent.md](../../agents/test-generator-ui.agent.md) for the exact pipeline position.
+Runs **once per request**, immediately after `requirements.md` exists and before the reuse-enforcement hook. It is invoked by whichever agent owns the per-story pipeline (`ui-automation-specialist` today; `api-automation-specialist` once its Skills are implemented) - not re-invoked per downstream Skill. See [ui-automation-specialist.agent.md](../../agents/ui-automation-specialist.agent.md) for the exact pipeline position.
 
 ## Inputs
 
@@ -35,7 +35,7 @@ Consume whatever of the following actually exists for this request - **never ass
 - `artifacts/<slug>/exploration.md`, if a prior partial/full exploration already ran (e.g. on a resumed pipeline)
 - Existing `artifacts/<slug>/test-cases.md` / `testcases.json`, if this request is refining a prior design
 - An API specification (OpenAPI/Swagger file or URL already provided in `requirements.md` - do not fetch one)
-- `artifacts/indexes/classes/*.json` (class index), only to note that a capability is *likely* relevant - see Existing Framework Awareness below
+- `index/page-objects/*.json` (class index), only to note that a capability is *likely* relevant - see Existing Framework Awareness below
 
 If something on this list doesn't exist for the current request, proceed without it - do not fail, and do not fabricate its content.
 
@@ -115,7 +115,7 @@ Test Architect owns the first arrow. `test-case-documenter` and `test-script-gen
 
 Read `framework-profile.json` to know what kind of framework exists (language, UI/API technology, architecture, key directories). This Skill may note that a scenario **looks like** it maps to an existing capability - e.g. `"Likely reusable: login capability"` - as a hint for the next stage.
 
-**It must NOT itself search `artifacts/indexes/classes/` for exact method/class matches or compute a reuse percentage.** That is the deep-discovery job the reuse-enforcement hook and `ClassIndexSearch.analyzeReuseCoverage()` already own (see [.github/hooks/02.5_intelligent-reuse-enforcement.hook.md](../../hooks/02.5_intelligent-reuse-enforcement.hook.md)). Test Architect's `existingCapabilityHint` field is a coarse, story-level guess, not a resolved reuse decision - conflating the two would duplicate the reuse-enforcement hook's job inside a different Skill.
+**It must NOT itself search `index/page-objects/*.json` for exact method/class matches or compute a reuse percentage.** That is the deep-discovery job the reuse-enforcement hook and `ClassIndexSearch.analyzeReuseCoverage()` already own (see [.github/hooks/02.5_intelligent-reuse-enforcement.hook.md](../../hooks/02.5_intelligent-reuse-enforcement.hook.md)). Test Architect's `existingCapabilityHint` field is a coarse, story-level guess, not a resolved reuse decision - conflating the two would duplicate the reuse-enforcement hook's job inside a different Skill.
 
 ## UI / API Independence
 

@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 
 /**
- * API Capability Search
+ * API Capability Search (manually maintained)
  *
- * Direct API client class/method search against artifacts/indexes/api/ - the API
- * equivalent of .github/capabilities/search-simplified.js's ClassIndexSearch, reusing
- * the same "direct index search before exploration" principle rather than a different
- * mechanism. No business-capability abstraction layer.
+ * Direct API client class/method search against *.json files under index/clients/,
+ * index/api/, or index/services/ (mirroring whichever of clients//api//services/ the
+ * target repository uses for its client source, kept separate from that source) - the
+ * API equivalent of .github/capabilities/search-simplified.js's ClassIndexSearch,
+ * reusing the same "direct index search before exploration" principle. No
+ * business-capability abstraction layer, no generated manifest, no source parser (that
+ * only ever worked for JavaScript - see README's former Limitations). Index files are
+ * authored/updated by hand (or with AI assistance) alongside the client class they
+ * describe, in any language - see api-client.instructions.md.
  *
  * CLI usage:
  *   node .github/skills/api-capability-discovery/search.js "get customer by id"
@@ -18,9 +23,7 @@ const fs = require('fs');
 const path = require('path');
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../..');
-const INDEXES_DIR = path.join(WORKSPACE_ROOT, 'artifacts', 'indexes');
-const API_INDEX_DIR = path.join(INDEXES_DIR, 'api');
-const MANIFEST_PATH = path.join(API_INDEX_DIR, '_manifest.json');
+const CANDIDATE_DIRS = ['index/clients', 'index/api', 'index/services'];
 
 // Action-verb families: mismatched families lower confidence even with strong token
 // overlap elsewhere, so e.g. getCustomer() doesn't get credited for a "search"/"find"
@@ -56,17 +59,24 @@ function verbFamilyOf(tokens) {
 class ApiIndexSearch {
   constructor({ verbose = false } = {}) {
     this.verbose = verbose;
-    this.manifest = fs.existsSync(MANIFEST_PATH) ? JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf-8')) : { classes: {} };
     this.classes = {};
 
-    for (const className of Object.keys(this.manifest.classes || {})) {
-      const classFile = path.join(API_INDEX_DIR, this.manifest.classes[className].file);
-      if (fs.existsSync(classFile)) {
-        this.classes[className] = JSON.parse(fs.readFileSync(classFile, 'utf-8'));
+    for (const dirName of CANDIDATE_DIRS) {
+      const dirPath = path.join(WORKSPACE_ROOT, dirName);
+      if (!fs.existsSync(dirPath)) continue;
+
+      const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.json'));
+      for (const file of files) {
+        try {
+          const data = JSON.parse(fs.readFileSync(path.join(dirPath, file), 'utf-8'));
+          if (data.className) this.classes[data.className] = data;
+        } catch (err) {
+          if (this.verbose) console.warn(`[API Search] ⚠ Skipping unreadable index file: ${dirName}/${file} (${err.message})`);
+        }
       }
     }
 
-    if (this.verbose) console.log(`[API Search] Loaded ${Object.keys(this.classes).length} API class indexes`);
+    if (this.verbose) console.log(`[API Search] Loaded ${Object.keys(this.classes).length} API class indexes from index/{clients,api,services}/*.json`);
   }
 
   getClass(className) {
@@ -171,18 +181,13 @@ class ApiIndexSearch {
     return { decision, coverage, existingImplementation, missing };
   }
 
-  verifyMethodsInSource(className, methodNames) {
-    const classData = this.classes[className];
-    if (!classData) return { allFound: false, missing: methodNames };
-    const sourcePath = path.join(WORKSPACE_ROOT, classData.file);
-    if (!fs.existsSync(sourcePath)) return { allFound: false, missing: methodNames };
-    const source = fs.readFileSync(sourcePath, 'utf-8');
-    const missing = methodNames.filter(name => !new RegExp(`(async\\s+)?\\b${name}\\s*\\(`).test(source));
-    return { allFound: missing.length === 0, missing };
-  }
-
   getSummary() {
-    return { version: this.manifest.version, generatedAt: this.manifest.generatedAt, statistics: this.manifest.statistics, classes: Object.keys(this.classes) };
+    const classNames = Object.keys(this.classes);
+    return {
+      classCount: classNames.length,
+      methodCount: classNames.reduce((sum, c) => sum + this.classes[c].methods.length, 0),
+      classes: classNames
+    };
   }
 }
 

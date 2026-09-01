@@ -77,10 +77,10 @@ Write `exploration.md` and `screenshots/`.
 - Methods: goto(), validUserLogin(), assertUserValidation()
 - Locators: (loaded from existing source)
 
-### Apply Leave Page (NEWLY EXPLORED)
+### Checkout Page (NEWLY EXPLORED)
 - URL: https://...
 - Locators: (captured via Playwright MCP)
-- Navigation: Dashboard → Quick Launch → Apply Leave
+- Navigation: Dashboard → Cart → Checkout
 ...
 ```
 

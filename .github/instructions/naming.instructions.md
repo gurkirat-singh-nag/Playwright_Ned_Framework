@@ -42,9 +42,16 @@ artifacts/<slug>/
 - `camelCase` class name suffixed with `Page` (e.g. `loginPage`, `dashboardPage`), matching the project's existing convention.
 - File name matches the class name exactly (e.g. `loginPage.js`).
 
+## API Clients
+
+- One class per resource/service, in the project's existing API client directory (`clients/`, `api/`, or `services/` - reuse whichever already exists).
+- `camelCase` class name suffixed with `Client` (e.g. `userClient`, `customerClient`), mirroring the Page Object convention.
+- File name matches the class name exactly (e.g. `userClient.js`).
+
 ## Test Specs
 
 - File naming: `<Feature>Test.spec.js`, matching the project's existing convention (e.g. `loginTest.spec.js`), one file per feature unless the target project already groups differently.
+- API test specs: `<Feature>ApiTest.spec.js`, disambiguating from the UI spec generated for the same feature (e.g. `loginApiTest.spec.js` alongside `loginTest.spec.js`).
 - New generated tests should include the Test Case ID in the test title for traceability (e.g. `TC-101: ...`). Do not retrofit this onto existing tests that predate the pipeline.
 
 ## Screenshots

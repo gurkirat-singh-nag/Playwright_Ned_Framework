@@ -74,7 +74,7 @@ Generate a comprehensive execution summary report documenting the complete workf
 2. **Summarize Agent Execution**
    
    - **Orchestrator**:
-     - Name: unified-test-orchestrator (or other)
+     - Name: central-automation-orchestrator (or other)
      - Invocation reason: User request analysis
      - Routing decision: Which specialist agent selected
    
@@ -219,8 +219,8 @@ Generate a comprehensive execution summary report documenting the complete workf
     Generate UI automation for Jira story PROJ-1234
     
     ## Execution Flow
-    1. unified-test-orchestrator (5s) ✓
-    2. test-generator-ui (3m 35s) ✓
+    1. central-automation-orchestrator (5s) ✓
+    2. ui-automation-specialist (3m 35s) ✓
        - jira-story-analyzer (45s) ✓
        - playwright-browser-exploration (1m 20s) ✓
        - test-plan-generator (30s) ✓

@@ -10,9 +10,9 @@ This Skill is a hybrid, unlike its neighbors: half of it is deterministic and co
 
 Before writing anything, the existing hooks were inspected:
 
-- **`.github/hooks/04_duplicate-detection.hook.md`** targets *code-level* duplication (Page Objects, methods, generated files) via a `.github/reuse-catalog.json` that doesn't exist and a v1 `artifacts/class-index.json` path this repo no longer has (superseded by `artifacts/indexes/classes/` - see [Prompt 1's rebuild](../../capabilities/generator.js)). It is itself unimplemented/stale and solves a different problem than scenario-text duplication. Test Validator's Category 3 (below) is a genuinely new check - no existing scenario-level duplicate detector existed to reuse - but it reuses that hook's *technique* (Jaccard token similarity, exact/near-duplicate thresholds) rather than inventing a different one.
+- **`.github/hooks/04_duplicate-detection.hook.md`** targets *code-level* duplication (Page Objects, methods, generated files) via a `.github/reuse-catalog.json` that doesn't exist and a v1 `artifacts/class-index.json` path this repo no longer has (superseded by the `index/page-objects/*.json` index). It is itself unimplemented/stale and solves a different problem than scenario-text duplication. Test Validator's Category 3 (below) is a genuinely new check - no existing scenario-level duplicate detector existed to reuse - but it reuses that hook's *technique* (Jaccard token similarity, exact/near-duplicate thresholds) rather than inventing a different one.
 - **`.github/hooks/05_artifact-validation.hook.md`** is the real "artifact validator" - general JSON/Markdown schema and completeness checking. Test Validator's Artifact Integrity category (10) is a direct application of that same responsibility, scoped to `test-design.json` (against [test-design.schema.json](../../schemas/test-design.schema.json)) and any other artifact present for the slug (e.g. `testcases.json` against `testcases.schema.json`) - not a second, parallel schema-validation mechanism.
-- **`.github/capabilities/validator.js` and `search-simplified.js`** (the "capability validator") are reused directly by `validate.js` for Category 8 (Existing Automation Awareness) - it calls `ClassIndexSearch.analyzeReuseCoverage()` read-only, for an informational per-scenario support label. It never computes or returns a REUSE/PARTIAL/EXPLORE decision - that stays `02.5_intelligent-reuse-enforcement.hook.md`'s job.
+- **`.github/capabilities/search-simplified.js`** is reused directly by `validate.js` for Category 8 (Existing Automation Awareness) - it calls `ClassIndexSearch.analyzeReuseCoverage()` read-only, for an informational per-scenario support label. It never computes or returns a REUSE/PARTIAL/EXPLORE decision - that stays `02.5_intelligent-reuse-enforcement.hook.md`'s job.
 - **`.github/hooks/06_output-quality-validation.hook.md`** validates *generated code* (Page Objects, specs) after generation - a different artifact type at a different pipeline stage. No overlap.
 
 No "framework validator" existed for checking a scenario's `technology` field against `framework-profile.json` - Category 6 is new logic, kept intentionally small.
@@ -34,15 +34,15 @@ Test Architect  →  test-design.md, test-design.json
                     ... rest of the pipeline unchanged ...
 ```
 
-Runs once per request, immediately after `test-design.json` exists, inside the same agent that owns the per-story pipeline (`test-generator-ui` today). It is not re-invoked per downstream Skill. See [test-generator-ui.agent.md](../../agents/test-generator-ui.agent.md) for the exact pipeline position and gate wiring.
+Runs once per request, immediately after `test-design.json` exists, inside the same agent that owns the per-story pipeline (`ui-automation-specialist` today). It is not re-invoked per downstream Skill. See [ui-automation-specialist.agent.md](../../agents/ui-automation-specialist.agent.md) for the exact pipeline position and gate wiring.
 
 ## Inputs
 
 - `artifacts/<slug>/test-design.json` (primary, required - this Skill cannot run without it)
 - `artifacts/<slug>/requirements.md` (for Category 7, requirement consistency)
 - `artifacts/indexes/framework-profile.json` (for Category 6, technology consistency)
-- `artifacts/<slug>/testcases.json`, if it already exists (Category 10 covers it too - this is exactly what catches `artifacts/kan-1/testcases.json`'s existing corruption)
-- `artifacts/indexes/classes/*.json` (via `search-simplified.js`, for Category 8, informational only)
+- `artifacts/<slug>/testcases.json`, if it already exists (Category 10 covers it too - this is exactly what catches a `testcases.json` corrupted by an earlier pipeline run)
+- `index/page-objects/*.json` (via `search-simplified.js`, for Category 8, informational only)
 - `artifacts/<slug>/test-validation.json`, if a prior validation run already exists for this slug (treat as context on a resumed pipeline, not as something to silently overwrite without re-checking)
 
 Do not require any input not already part of this pipeline. Missing optional inputs degrade specific categories to a WARNING/INFO note (see `validate.js`'s handling of a missing `framework-profile.json`), never to a hard failure of the whole Skill.
@@ -75,7 +75,7 @@ Check that `reason` is substantive, not filler. "Can be automated." is not an ac
 `validate.js`'s `checkTechnologyConsistency()` compares each scenario's `technology` (UI/API/both/integration/manual-only) against `framework-profile.json`'s `uiFramework`/`apiFramework`: a scenario needing UI or API automation when the profile reports `"none"`/`"unknown"` for that surface is a **WARNING**. Note: Test Architect's `technology` field is deliberately engine-neutral (never says "Playwright" or "Selenium" - see [test-architect/README.md](../test-architect/README.md)'s UI/API Independence rule), so this check operates at the surface level (does *any* UI/API capability exist), not by comparing named engines against each other - there is no engine name in `test-design.json` to compare in the first place.
 
 ### 7. Requirement Consistency
-Compare scenarios against `requirements.md` directly. Report a **REQUIREMENT / IMPLEMENTATION DISCREPANCY** (WARNING) when a scenario or AC conflicts with evidence elsewhere in the repository - e.g. an AC describing a navigation path or capability that doesn't match what an existing Page Object actually does. **Never silently correct the requirement or the scenario** - report the discrepancy and let a human resolve it. This is exactly the class of finding Test Architect's own `existingCapabilityHint`/risk fields sometimes already surface (see KAN-1's AC-2 and AC-3/AC-4 findings) - the Validator's job here is to confirm those flagged discrepancies are real and to catch any Test Architect missed, not to invent new ones. Reasoning-only; `validate.js` does not read `requirements.md` prose.
+Compare scenarios against `requirements.md` directly. Report a **REQUIREMENT / IMPLEMENTATION DISCREPANCY** (WARNING) when a scenario or AC conflicts with evidence elsewhere in the repository - e.g. an AC describing a navigation path or capability that doesn't match what an existing Page Object actually does. **Never silently correct the requirement or the scenario** - report the discrepancy and let a human resolve it. This is exactly the class of finding Test Architect's own `existingCapabilityHint`/risk fields sometimes already surface - the Validator's job here is to confirm those flagged discrepancies are real and to catch any Test Architect missed, not to invent new ones. Reasoning-only; `validate.js` does not read `requirements.md` prose.
 
 ### 8. Existing Automation Awareness
 `validate.js`'s `checkExistingCapabilityAwareness()` calls `ClassIndexSearch.analyzeReuseCoverage()` per scenario and labels each `appears fully supported` / `appears partially supported` / `no known implementation` as **INFO**. This never launches MCP, never computes a final reuse percentage decision, and never blocks - it's a heads-up for the reader, matching Test Architect's own `existingCapabilityHint` at a slightly higher confidence (an actual index lookup, not a coarse guess) but still not the resolved decision the reuse-enforcement hook makes next.
@@ -84,7 +84,7 @@ Compare scenarios against `requirements.md` directly. Report a **REQUIREMENT / I
 Review Test Architect's `risks[]`. Flag generic/boilerplate risk text not tied to specific evidence (**INFO** - improvement suggestion), risks with no `relatedScenarios` when they plausibly should have one, and - the more important direction - an explicitly risky AC (e.g. one Test Architect's own risk analysis or `requirements.md`'s own Risks section already flagged) that has **no** corresponding risk entry at all (**WARNING** - missing risk coverage). Do not invent new risk categories wholesale; this is a review of what's already there, not a fresh risk-analysis pass.
 
 ### 10. Artifact Integrity
-`validate.js`'s `checkArtifactIntegrity()`: JSON parse safety (catches malformed JSON as **BLOCKER**, never attempts repair), schema conformance against `test-design.schema.json`, duplicate scenario IDs, AC cross-reference validity, coverage-array consistency, and - critically - the same integrity bar applied to any other artifact already present for the slug, such as `testcases.json`. **This is the check that catches `artifacts/kan-1/testcases.json`'s existing corruption** (a duplicated `testCases` array making the file invalid JSON) as an `ARTIFACT INTEGRITY FAILURE`, reported with file/problem/severity, never silently repaired.
+`validate.js`'s `checkArtifactIntegrity()`: JSON parse safety (catches malformed JSON as **BLOCKER**, never attempts repair), schema conformance against `test-design.schema.json`, duplicate scenario IDs, AC cross-reference validity, coverage-array consistency, and - critically - the same integrity bar applied to any other artifact already present for the slug, such as `testcases.json`. **This is the check that catches a `testcases.json` corrupted by an earlier pipeline run** (e.g. a duplicated `testCases` array making the file invalid JSON) as an `ARTIFACT INTEGRITY FAILURE`, reported with file/problem/severity, never silently repaired.
 
 ## Severity Model
 
@@ -119,11 +119,11 @@ status = PASS_WITH_WARNINGS  → Continue, but carry the warnings forward in the
 status = PASS                → Continue normally.
 ```
 
-The invoking agent must never proceed past a `BLOCKED` status - this is the one hard stop this Skill introduces into the pipeline, matching the existing "Stop on Failure" rule every Skill in `test-generator-ui`'s pipeline already follows, applied here specifically to blocker-level validation findings rather than a missing/invalid artifact.
+The invoking agent must never proceed past a `BLOCKED` status - this is the one hard stop this Skill introduces into the pipeline, matching the existing "Stop on Failure" rule every Skill in `ui-automation-specialist`'s pipeline already follows, applied here specifically to blocker-level validation findings rather than a missing/invalid artifact.
 
 ## How Downstream Agents Consume The Result
 
-- `test-generator-ui` checks `test-validation.json`'s `status` immediately after this Skill runs, before invoking the reuse-enforcement hook. `BLOCKED` halts the pipeline exactly like any other Skill failure. `PASS_WITH_WARNINGS`'s `issues[]` are carried into the final completion summary so a human sees them even though generation proceeded.
+- `ui-automation-specialist` checks `test-validation.json`'s `status` immediately after this Skill runs, before invoking the reuse-enforcement hook. `BLOCKED` halts the pipeline exactly like any other Skill failure. `PASS_WITH_WARNINGS`'s `issues[]` are carried into the final completion summary so a human sees them even though generation proceeded.
 - `02.5_intelligent-reuse-enforcement.hook.md` and `playwright-browser-exploration` are not expected to re-read `test-validation.json` themselves - the gate has already been applied by the time they run.
 
 ## Logging

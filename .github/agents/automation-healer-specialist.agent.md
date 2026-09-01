@@ -1,5 +1,5 @@
 ---
-name: unified-test-healer
+name: automation-healer-specialist
 
 description: |
   Diagnose and repair failing UI or API automation. Analyses failure
@@ -9,7 +9,7 @@ description: |
 argument-hint: |
   Examples:
   - Failing test file or spec name
-  - CI/Jenkins build with failing tests
+  - CI/ADO build with failing tests
   - Error message or stack trace pasted directly
 
 tools:
@@ -27,9 +27,9 @@ user-invocable: true
 disable-model-invocation: false
 
 agents:
-  - jenkins-analyzer
+  - ci-analyzer-specialist
 ---
-# Unified Test Healer
+# Automation Healer Specialist
 
 ## Responsibility
 
@@ -46,7 +46,7 @@ Diagnose why existing automation is failing and apply the smallest safe fix, wit
 
 - Failing test file or spec name
 - Error message or stack trace
-- CI/Jenkins build reference
+- CI/ADO build reference
 
 ## Outputs
 
@@ -56,7 +56,7 @@ Diagnose why existing automation is failing and apply the smallest safe fix, wit
 
 ## Skills Used
 
-None directly. Reuses the target repository's existing Page Objects and automation conventions, and delegates CI evidence gathering to the jenkins-analyzer agent.
+None directly. Reuses the target repository's existing Page Objects and automation conventions, and delegates CI evidence gathering to the ci-analyzer-specialist agent.
 
 ## Success Criteria
 
