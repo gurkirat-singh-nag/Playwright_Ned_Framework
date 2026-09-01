@@ -32,9 +32,35 @@ Behind the scenes, each generation request runs a fixed pipeline - requirements 
 
 ## 2. Prerequisites
 
-- A Playwright project with an existing `page-objects/` (or equivalent) and `tests/` folder - the scaffold reuses your conventions, it doesn't impose new ones.
+- A Playwright project - either an existing one with `page-objects/` (or equivalent) and `tests/` folders already in place (the scaffold reuses your conventions, it doesn't impose new ones), or nothing at all - see "Starting From Zero" below if you're beginning a brand-new project.
 - VS Code + GitHub Copilot Chat with custom agents/prompt files enabled (or an equivalent agent runtime - see the note at the bottom on Claude Code).
-- Optional: [Atlassian MCP](https://mcp.atlassian.com) configured if you want agents to fetch Jira stories directly, and Playwright MCP if you want live browser exploration for genuinely new UI. Both are declared in `.vscode/mcp.json`.
+- Optional: [Atlassian MCP](https://mcp.atlassian.com) configured if you want agents to fetch Jira stories directly, and Playwright MCP if you want live browser exploration for genuinely new UI. Both are declared in `.vscode/mcp.json`. **Neither is required to use this scaffold** - see the MCP-unavailable note in §4 if you don't have them.
+
+### About `.vscode/mcp.json`
+
+```json
+{
+  "servers": {
+    "playwright": { "type": "stdio", "command": "npx", "args": ["-y", "@playwright/mcp@latest"] },
+    "atlassian": { "type": "sse", "url": "https://mcp.atlassian.com/v1/sse" }
+  }
+}
+```
+
+**Commit this file** - as shipped, it contains no secrets, just server declarations. Playwright MCP needs no configuration (`npx` fetches it on demand); Atlassian MCP's URL is a public endpoint - authentication happens as an interactive OAuth sign-in inside VS Code the first time you use it, not as anything stored in this file. If your team later adds an MCP server that genuinely needs a secret (an API key, an internal server's token), use VS Code's `${input:...}` variable prompt mechanism to keep the secret out of the committed file, rather than pasting it directly into `mcp.json`.
+
+### Starting From Zero (No Existing Playwright Project)
+
+If you don't have a Playwright project yet, create one first - the scaffold generates *into* a project, it doesn't scaffold the project itself:
+
+```bash
+npm init -y
+npm install --save-dev @playwright/test
+npx playwright install chromium
+mkdir page-objects tests
+```
+
+Then write a minimal `playwright.config.js` (`testDir: './tests'`, a `baseURL`, one `chromium` project is enough to start). Once `npx playwright test` runs (even with zero tests), proceed to setup below exactly as an existing project would.
 
 ## 3. One-Time Setup
 
@@ -43,6 +69,8 @@ Behind the scenes, each generation request runs a fixed pipeline - requirements 
 3. **Calibrate the instructions to your repo's actual conventions - do this before generating anything.** This is the step most teams skip and then wonder why generated code doesn't look like theirs.
 
    `.github/instructions/*.instructions.md` ships with *this* repo's actual conventions written in as concrete examples - `camelCase` Page Object classes, CommonJS `module.exports`, a specific `auth.json`/`testDataUtils.json` pattern, Allure reporting. These aren't universal Playwright rules; they're this project's choices. Copying `.github/` into your repo without updating them means agents will generate code following someone else's conventions, not yours.
+
+   **Starting from zero, with no existing Page Objects to read?** This step is a no-op for now - the shipped defaults apply until your team decides otherwise. There's nothing to reverse-engineer from an empty `page-objects/` folder, so skip straight to writing your first story; revisit this prompt once you have a handful of real generated/hand-written classes to calibrate against, or the moment your team makes an explicit convention choice (e.g. "we're using TypeScript, not JS").
 
    Don't figure this out from scratch by hand - paste the prompt below to your agent. It does the same thing `/init` does for a general codebase (deep-read the repo, then write down what it found), scoped specifically to this scaffold's instruction files, so the team doesn't have to reinvent conventions their codebase already has:
 
@@ -96,6 +124,21 @@ Behind the scenes, each generation request runs a fixed pipeline - requirements 
 
 4. **Nothing to generate or seed for the reuse index.** It (see §6) starts empty and that's a valid state - it just means the first few stories explore the UI/API fully instead of reusing. You do not need to run a generator or wait for anything to index your existing code before you start.
 5. **Re-run framework discovery once your dependencies are installed**: `node .github/skills/framework-discovery/detect.js --force`, so `artifacts/indexes/framework-profile.json` reflects your actual stack rather than a stale or absent profile.
+6. **Verify the setup actually works, without needing an agent at all.** The scaffold's deterministic pieces are plain Node scripts you can run directly from a terminal - useful both as a first-time sanity check and later for debugging:
+
+   ```bash
+   # Confirms your stack was detected correctly
+   node .github/skills/framework-discovery/detect.js
+   # → should print your real language/uiFramework/testRunner, not "unknown"
+
+   # Confirms the reuse index loads without error (0 classes is fine on day one)
+   node .github/capabilities/search-simplified.js --summary
+
+   # Same, for the API-side index (only relevant once you have API clients)
+   node .github/skills/api-capability-discovery/search.js --summary
+   ```
+
+   If you already have a `test-design.json` for a story (e.g. one an agent produced), you can also gate-check it directly: `node .github/skills/test-validator/validate.js <slug>` - useful for confirming a `BLOCKED` result's exact reason without re-running the whole agent.
 
 That's the entire setup. No build step, no server to run.
 
@@ -107,6 +150,8 @@ That's the entire setup. No build step, no server to run.
 4. The pipeline checks your existing Page Objects/clients for reuse *before* exploring the app: 100% coverage skips browser/API exploration entirely and generates straight from what exists; partial coverage explores only the specific gaps instead of re-discovering everything; zero coverage explores in full. You'll see which of the three happened in the agent's output.
 5. Each stage writes its artifact to `artifacts/<slug>/` as it completes and checkpoints its status - so a long-running or interrupted pipeline can be resumed from where it left off (e.g. after a browser-exploration timeout) instead of restarting from scratch and re-paying for an already-completed step.
 6. You get real, runnable output: new or updated files under `page-objects/`/`clients/` and `tests/`, following your project's existing naming and style conventions (see `.github/instructions/`).
+
+**No Playwright MCP available?** Exploration doesn't hard-depend on it. Without an MCP browser tool, an agent falls back to gathering the same evidence by writing and directly executing a throwaway Playwright script against the real app (navigate, take screenshots, inspect the DOM) instead of calling MCP tools - functionally equivalent, just a different mechanism to get there. This is a real, already-used fallback in this scaffold's own history, not a hypothetical.
 
 ## 5. Where To Find (And Use) The Results
 
@@ -127,6 +172,10 @@ Every Page Object/API client has a matching entry under `index/page-objects/<cla
 
 This design is why the scaffold works regardless of your project's language (Java/RestAssured, TypeScript, Python) - the index is just structured JSON, authored by hand or AI, never mechanically parsed from source.
 
+**Do not skip the `description` field on each method - it's the single biggest silent-failure risk in this whole scaffold.** The reuse search scores matches by keyword overlap against the method's `name` *and* `description` together. An index entry with only `{ "name": "goto", "params": [] }` and no description will frequently under-match a real, correct requirement - verified directly: the same story scored 0% (recommending full exploration) against a description-less index and 100% (full reuse, no exploration) against the identical index with one sentence of description added per method. Write a real one-line description for every method, every time - `"Navigate to the login page"`, not a placeholder.
+
+Consider adding one line to your PR template or review checklist: *"If this PR adds/changes/removes a Page Object or client method, is its `index/` entry updated too?"* That's a human process nudge, not tooling - deliberately so, since this scaffold has no automated drift detection for the index by design (see above).
+
 ## 7. Healing A Failing Test
 
 Invoke `automation-healer-specialist` with the failing spec name, an error message, or an ADO build reference. It gathers evidence, classifies the root cause (locator change, app behavior change, environment issue, flaky test), and applies the smallest fix - it will not redesign your automation architecture or touch unrelated tests. For CI-sourced failures, `ci-analyzer-specialist` investigates the Azure DevOps build first and hands off categorized findings.
@@ -136,6 +185,15 @@ Invoke `automation-healer-specialist` with the failing spec name, an error messa
 - [copilot-instructions.md](copilot-instructions.md) is the full architecture reference - read it for the complete pipeline diagram and every agent/Skill's responsibility.
 - Each Skill has its own `README.md` under `.github/skills/<name>/` documenting its exact inputs, outputs, and failure handling.
 - `.github/instructions/*.instructions.md` documents the naming/coding conventions generated code follows - check these if generated output doesn't match your team's existing style, and adjust the instructions file rather than fighting the generator each time.
+
+## 9. Troubleshooting
+
+- **A reuse search returns 0%/`EXPLORE` for something that should obviously match.** Almost always a missing or vague `description` field on the relevant index entry - see the callout in §6. Confirm with `node .github/capabilities/search-simplified.js "<the requirement text>"` and check the score it returns.
+- **Copilot doesn't show the custom agents after copying `.github/`.** Reload the VS Code window (custom agents/prompts are picked up on load, not live-watched in every Copilot version). Confirm the files actually landed at `.github/agents/*.agent.md` and `.github/prompts/*.prompt.md`, not nested a level too deep.
+- **Generated code doesn't match your team's style.** You skipped or under-did the calibration step (§3.3) - re-run the calibration prompt, this time pointing it at real examples that exist by now.
+- **`framework-discovery` reports `"unknown"` for a technology you clearly have.** Its detection is evidence-based only (checks `package.json`/`pom.xml`/config files directly) - confirm the dependency is actually declared where it looks (see [framework-discovery/README.md](skills/framework-discovery/README.md)'s "What It Scans"), then re-run with `--force`.
+- **A pipeline run against a real external site is flaky or times out.** Two common, non-code causes, both hit during this scaffold's own testing: `waitForLoadState('networkidle')` never resolving on a site with continuous background network activity (use a specific URL/element wait instead), and Playwright's default 30s test timeout being tight for a flow with several real sequential page loads (raise `timeout` in `playwright.config.js`). Neither is a defect in the generated Page Objects themselves - check the actual error before assuming the generated code is wrong.
+- **You don't have Playwright MCP or Atlassian MCP configured.** Neither is required - see the MCP-unavailable note in §4 for exploration, and for Jira, paste the story's text directly into your prompt instead of giving just an ID.
 
 ## A Note On Agent Runtimes
 
