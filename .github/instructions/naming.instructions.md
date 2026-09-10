@@ -11,16 +11,12 @@ Every request is processed under a single per-request working directory, keyed b
 
 ```
 artifacts/<slug>/
-├── requirements.md
-├── test-design.md
-├── test-design.json
-├── test-validation.md
-├── test-validation.json
+├── test-plan.md
 ├── exploration.md
 ├── screenshots/
-├── test-plan.md
 ├── test-cases.md
 ├── testcases.json
+├── pipeline-state.json  (internal checkpoint/resume state - not a story artifact)
 ├── page-objects/
 └── tests/
 ```
@@ -28,12 +24,12 @@ artifacts/<slug>/
 - Derive `<slug>` from the Jira Story ID when available (e.g. `artifacts/PROJ-1234/`).
 - If no Jira ID exists, derive a kebab-case slug from the requirement's short title (e.g. `artifacts/guest-checkout-flow/`).
 - Reuse the same slug across a resumed pipeline run; never create a second directory for the same requirement.
-- Artifact file names are fixed and lowercase exactly as shown above - never version them (no `requirements-v2.md`).
+- Artifact file names are fixed and lowercase exactly as shown above - never version them (no `test-plan-v2.md`).
 
 ## Identifiers
 
-- Acceptance Criterion ID: `AC-#` (e.g. `AC-3`), reused from `requirements.md` when already numbered there, or assigned in that order by Test Architect when the source is unnumbered prose.
-- Scenario ID: `SC-###` (e.g. `SC-014`), assigned once in `test-design.md`/`test-design.json` by Test Architect, carried through unchanged into `test-plan.md`, never reused for a different scenario.
+- Acceptance Criterion ID: `AC-#` (e.g. `AC-3`), reused from the story content when already numbered there, or assigned in that order by Test Plan Generator when the source is unnumbered prose.
+- Scenario ID: `SC-###` (e.g. `SC-014`), assigned once in `test-plan.md` by Test Plan Generator (or Input Normalizer, for a supplied manual test case), never reused for a different scenario.
 - Test Case ID: `TC-###` (e.g. `TC-101`), assigned once in `test-cases.md` / `testcases.json`, and referenced in generated spec titles.
 
 ## Page Objects

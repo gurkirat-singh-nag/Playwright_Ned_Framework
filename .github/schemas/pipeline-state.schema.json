@@ -11,20 +11,19 @@
     "status": { "type": "string", "enum": ["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "FAILED", "BLOCKED"] },
     "currentStage": {
       "type": "string",
-      "enum": ["story-analysis", "framework-discovery", "test-architecture", "test-validation", "capability-discovery", "exploration", "test-generation", "execution", "healing", "reporting"]
+      "enum": ["framework-discovery", "test-plan", "reuse-check", "exploration", "test-cases", "test-script", "execution", "healing", "reporting"]
     },
     "stages": {
       "type": "object",
-      "required": ["story-analysis", "framework-discovery", "test-architecture", "test-validation", "capability-discovery", "exploration", "test-generation", "execution", "healing", "reporting"],
+      "required": ["framework-discovery", "test-plan", "reuse-check", "exploration", "test-cases", "test-script", "execution", "healing", "reporting"],
       "additionalProperties": false,
       "properties": {
-        "story-analysis": { "$ref": "#/definitions/stageEntry" },
         "framework-discovery": { "$ref": "#/definitions/stageEntry" },
-        "test-architecture": { "$ref": "#/definitions/stageEntry" },
-        "test-validation": { "$ref": "#/definitions/stageEntry" },
-        "capability-discovery": { "$ref": "#/definitions/stageEntry" },
+        "test-plan": { "$ref": "#/definitions/stageEntry" },
+        "reuse-check": { "$ref": "#/definitions/stageEntry" },
         "exploration": { "$ref": "#/definitions/stageEntry" },
-        "test-generation": { "$ref": "#/definitions/stageEntry" },
+        "test-cases": { "$ref": "#/definitions/stageEntry" },
+        "test-script": { "$ref": "#/definitions/stageEntry" },
         "execution": { "$ref": "#/definitions/stageEntry" },
         "healing": { "$ref": "#/definitions/stageEntry" },
         "reporting": { "$ref": "#/definitions/stageEntry" }

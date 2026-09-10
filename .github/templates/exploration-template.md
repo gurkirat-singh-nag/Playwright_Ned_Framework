@@ -1,7 +1,7 @@
 # exploration.md - Artifact Contract
 
-Produced by: Playwright Browser Exploration (Skill 2)
-Consumed by: Test Plan Generator (Skill 3), Page Object Generator (Skill 5)
+Produced by: Playwright Browser Exploration
+Consumed by: Test Case Documenter, Page Object Generator, Test Script Generator
 
 This file is the authoritative, append-only record of observed application behaviour for one request, captured via Playwright MCP. It must never be regenerated from assumptions - every entry must reflect an actual navigation, snapshot, or accessibility-tree capture.
 
@@ -13,7 +13,7 @@ This file is the authoritative, append-only record of observed application behav
 
 ## Navigation Flow
 
-<!-- Step-by-step paths through the application relevant to requirements.md. -->
+<!-- Step-by-step paths through the application relevant to test-plan.md's scenarios. -->
 
 ## Screens Explored
 

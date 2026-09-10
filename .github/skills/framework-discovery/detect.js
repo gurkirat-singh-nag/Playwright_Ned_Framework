@@ -4,7 +4,7 @@
  * Framework Discovery
  *
  * Code/repository discovery only - inspects package.json, config files, and
- * directory structure to build artifacts/indexes/framework-profile.json.
+ * directory structure to build index/framework-profile.json.
  *
  * Does NOT launch a browser, MCP server, or call any live API. That is the
  * explicit responsibility boundary of this script; see the Skill README.
@@ -20,7 +20,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../..');
-const PROFILE_PATH = path.join(WORKSPACE_ROOT, 'artifacts', 'indexes', 'framework-profile.json');
+const PROFILE_PATH = path.join(WORKSPACE_ROOT, 'index', 'framework-profile.json');
 
 const UNKNOWN = 'unknown';
 
@@ -121,13 +121,27 @@ function detectTestRunner(pkg) {
   return UNKNOWN;
 }
 
-function detectUiArchitecture() {
-  const pageObjectFiles = listDir('page-objects').filter(f => f.endsWith('.js'));
-  if (pageObjectFiles.length > 0) return 'Page Object Model';
-  return UNKNOWN;
+/**
+ * conventions is agent-written (see repo-convention-discovery Skill), never
+ * guessed by this script - it's the only reliable source for where source
+ * lives in a repo whose layout this script has no static evidence for (e.g.
+ * a Maven/Gradle Java project, where there is no fixed top-level folder to
+ * check). Absent conventions, fall back to this repo family's own
+ * out-of-the-box layout (a top-level page-objects/ folder) - a real,
+ * evidence-checked folder, not an invented one; presence-only (no extension
+ * filter) so it recognizes .ts/.java files just as correctly as .js ones.
+ */
+function detectUiArchitecture(conventions) {
+  if (conventions && conventions.pageObjectsPath) {
+    return listDir(conventions.pageObjectsPath).length > 0 ? 'Page Object Model' : UNKNOWN;
+  }
+  return listDir('page-objects').length > 0 ? 'Page Object Model' : UNKNOWN;
 }
 
-function detectApiArchitecture() {
+function detectApiArchitecture(conventions) {
+  if (conventions && conventions.apiClientsPath) {
+    return listDir(conventions.apiClientsPath).length > 0 ? 'API client pattern' : UNKNOWN;
+  }
   if (exists('api') || exists('clients') || exists('services')) return 'API client pattern';
   return UNKNOWN;
 }
@@ -177,11 +191,11 @@ function detectMcp() {
   });
 }
 
-function detectDirectories() {
+function detectDirectories(conventions) {
   return {
-    pageObjects: exists('page-objects') ? 'page-objects/' : UNKNOWN,
-    tests: exists('tests') ? 'tests/' : UNKNOWN,
-    apiClients: (exists('api') && 'api/') || (exists('clients') && 'clients/') || UNKNOWN,
+    pageObjects: (conventions && conventions.pageObjectsPath) || (exists('page-objects') ? 'page-objects/' : UNKNOWN),
+    tests: (conventions && conventions.testsPath) || (exists('tests') ? 'tests/' : UNKNOWN),
+    apiClients: (conventions && conventions.apiClientsPath) || (exists('api') && 'api/') || (exists('clients') && 'clients/') || UNKNOWN,
     utilities: exists('utils') ? 'utils/' : UNKNOWN,
     testData: exists('utils/testDataUtils.json') ? 'utils/testDataUtils.json' : UNKNOWN,
     fixtures: exists('fixtures') ? 'fixtures/' : UNKNOWN,
@@ -194,8 +208,21 @@ function detectDirectories() {
   };
 }
 
+/**
+ * conventions is never produced by this script - it's written by the
+ * repo-convention-discovery Skill (an agent that reads real source files
+ * and records what it found: { pageObjectsPath, apiClientsPath, testsPath }).
+ * Regenerating the profile must not erase it, so carry forward whatever the
+ * previous profile already had recorded.
+ */
+function readExistingConventions() {
+  const existing = readJson(path.relative(WORKSPACE_ROOT, PROFILE_PATH));
+  return (existing && existing.conventions) || null;
+}
+
 function buildProfile() {
   const pkg = readJson('package.json');
+  const conventions = readExistingConventions();
 
   return {
     version: '1.0',
@@ -206,14 +233,15 @@ function buildProfile() {
     apiFramework: detectApiFramework(pkg),
     testRunner: detectTestRunner(pkg),
     architecture: {
-      ui: detectUiArchitecture(),
-      api: detectApiArchitecture()
+      ui: detectUiArchitecture(conventions),
+      api: detectApiArchitecture(conventions)
     },
     packageManager: detectPackageManager(),
     reporting: detectReporting(pkg),
     ci: detectCi(),
     mcp: detectMcp(),
-    directories: detectDirectories()
+    directories: detectDirectories(conventions),
+    conventions: conventions || null
   };
 }
 

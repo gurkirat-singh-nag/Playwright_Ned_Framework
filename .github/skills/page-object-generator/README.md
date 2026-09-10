@@ -12,7 +12,8 @@ Generate reusable Page Objects for the target automation framework using locator
 ## Outputs
 
 - `page-objects/`
-- `index/page-objects/<className>.json` for each Page Object this Skill creates or modifies
+
+This Skill never writes to `index/page-objects/` - see "What This Skill Must NOT Do" below.
 
 ## Artifacts Produced
 
@@ -20,15 +21,26 @@ Generate reusable Page Objects for the target automation framework using locator
 
 ## Artifacts Consumed
 
-- `exploration.md` and `testcases.json` only. This Skill must never contact Jira, Confluence, or the live application directly - if a required locator is missing from `exploration.md`, it is flagged, not re-explored ad hoc.
+- `exploration.md` and `testcases.json` only. This Skill must never contact Jira, Confluence, or the live application directly - if a required locator is missing from `exploration.md`, it is flagged, not re-explored ad hoc. `exploration.md` is authoritative evidence for observed locators and explored behavior; this Skill applies the repository's established Page Object/test coding conventions when deciding how that evidence is represented in code.
 
 ## Execution Steps
 
 1. Read `testcases.json` to determine every distinct `targetPage` required.
-2. For each required page, check whether a matching Page Object already exists in the project's `page-objects/` folder; if so, reuse it.
-3. For each page without an existing Page Object, generate one using the locator strategy priority documented in `exploration.md`: `getByRole`/`getByPlaceholder`/`getByLabel` > `data-testid` > stable `id` > other.
+2. For each required page, check whether a matching Page Object already exists in the project's `page-objects/` folder. Before modifying an existing Page Object, inspect its existing locators and methods and determine whether the required behavior can already be implemented by reuse:
+   - **A method for the required action already exists**: reuse it - do not create a duplicate method.
+   - **A locator for the required action already exists, but no matching method does**: reuse the existing locator. Do not automatically create a new wrapper method for it - use the locator directly when that is consistent with the project's established test/Page Object convention; if the project's convention requires Page Object action methods for this kind of interaction, a new method may be added.
+   - **The required locator is missing**: extend the existing Page Object with the newly required locator and its corresponding action/accessor, but only for the behavior actually required by the explored evidence.
+
+   Existing Page Object modification is allowed when genuinely required by the new behavior, but must be limited to the required change.
+3. For each page without any matching Page Object, create a new one, using the locator strategy priority documented in `exploration.md`: `getByRole`/`getByPlaceholder`/`getByLabel` > `data-testid` > stable `id` > other.
 4. Update each test case's `requiredPageObjects` field in `testcases.json` to reflect the Page Object(s) it depends on.
-5. Write `page-objects/`, and write or update the matching `index/page-objects/<className>.json` for every Page Object created or modified in this run - see [page-object.instructions.md](../../instructions/page-object.instructions.md). This Skill already knows exactly which methods it just wrote, so authoring the index entry here costs nothing extra and needs no source parsing.
+5. Write `page-objects/`.
+
+## What This Skill Must NOT Do
+
+- Must NOT create, update, regenerate, or validate any file under `index/page-objects/` - the index is entirely developer-maintained (see [02.5_intelligent-reuse-enforcement.hook.md](../../hooks/02.5_intelligent-reuse-enforcement.hook.md)). If this Skill creates or modifies a Page Object, keeping its index entry current afterward is a developer task, not something this Skill does automatically.
+- Must NOT modify an existing Page Object merely to wrap an already-existing locator in a new method unless the repository's established convention requires such a method.
+- Must NOT create a duplicate locator or a duplicate method for behavior an existing Page Object already exposes.
 
 ## Failure Handling
 

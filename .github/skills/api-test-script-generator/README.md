@@ -8,7 +8,7 @@ The API equivalent of `test-script-generator`: generate executable API test spec
 
 - `clients/` (or the target repository's equivalent API client directory)
 - `artifacts/<slug>/testcases.json`
-- `artifacts/indexes/framework-profile.json` (`testRunner`)
+- `index/framework-profile.json` (`testRunner`)
 
 ## Outputs
 

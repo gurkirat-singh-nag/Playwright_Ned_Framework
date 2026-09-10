@@ -13,13 +13,17 @@
     },
     "generatedFrom": {
       "type": "object",
-      "description": "Traceability pointers back to the artifacts this file was derived from.",
-      "required": ["requirements", "testPlan"],
+      "description": "Traceability pointers back to the artifacts this file was derived from. Every route (Jira story, direct story text, or a supplied manual test case) produces test-plan.md and exploration.md before testcases.json exists, so both are always required - 'origin' is optional metadata noting which route produced test-plan.md, not a branch in this file's shape.",
+      "required": ["testPlan", "exploration"],
       "additionalProperties": false,
       "properties": {
-        "requirements": { "type": "string", "const": "requirements.md" },
+        "testPlan": { "type": "string", "const": "test-plan.md" },
         "exploration": { "type": "string", "const": "exploration.md" },
-        "testPlan": { "type": "string", "const": "test-plan.md" }
+        "origin": {
+          "type": "string",
+          "enum": ["jira-story", "jira-story-scenario", "direct-story-text", "manual-test-case"],
+          "description": "Optional - which route produced test-plan.md. Informational only."
+        }
       }
     },
     "testCases": {
@@ -88,7 +92,7 @@
         "linkedRequirement": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Acceptance criteria or requirement references from requirements.md."
+          "description": "Acceptance criteria references (e.g. AC-1) from test-plan.md."
         },
         "linkedScenario": {
           "type": "string",

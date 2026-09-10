@@ -5,7 +5,7 @@ applyTo: "**/clients/**, **/api/**, **/services/**"
 
 # API Client Conventions
 
-Framework-agnostic by design: the HTTP client library follows whatever `artifacts/indexes/framework-profile.json` reports as `apiFramework` for the target repository - never assumed. See [api-client-generator/README.md](../skills/api-client-generator/README.md) Step 3 for the exact selection rule (existing library if one is already in use; Node's built-in `fetch` as the zero-dependency default when none exists yet, recorded as an explicit assumption).
+Framework-agnostic by design: the HTTP client library follows whatever `index/framework-profile.json` reports as `apiFramework` for the target repository - never assumed. See [api-client-generator/README.md](../skills/api-client-generator/README.md) Step 3 for the exact selection rule (existing library if one is already in use; Node's built-in `fetch` as the zero-dependency default when none exists yet, recorded as an explicit assumption).
 
 - One class per resource/service, in the project's existing API client directory (`clients/`, `api/`, or `services/` - reuse whichever already exists; create `clients/` only if none does).
 - Naming: `camelCase` class name suffixed with `Client` (e.g. `userClient`, `customerClient`), mirroring the Page Object naming convention (`camelCase` + `Page`) already used in this repository. File name matches the class name exactly (e.g. `userClient.js`).

@@ -2,7 +2,7 @@
 
 ## Responsibility
 
-Validate all generated pipeline artifacts (requirements.md, exploration.md, api-exploration.md, test-plan.md, test-cases.md, testcases.json, Page Objects, test specs) for completeness, correctness, schema compliance, and mandatory section presence before downstream Skills consume them or execution proceeds.
+Validate all generated pipeline artifacts (test-plan.md, exploration.md, api-exploration.md, test-cases.md, testcases.json, Page Objects, test specs) for completeness, correctness, schema compliance, and mandatory section presence before downstream Skills consume them or execution proceeds.
 
 ## Trigger
 
@@ -12,15 +12,14 @@ Validate all generated pipeline artifacts (requirements.md, exploration.md, api-
 
 ## Executes Before
 
-- Next pipeline phase (e.g., test-plan-generator must validate requirements.md before proceeding)
+- Next pipeline phase (e.g., the Existing Automation/Index step must validate test-plan.md before proceeding)
 
 ## Executes After
 
 - All generation Skills:
-  - jira-story-analyzer → validates `requirements.md`
+  - test-plan-generator (or input-normalizer, for a supplied manual test case) → validates `test-plan.md`
   - playwright-browser-exploration → validates `exploration.md`
   - api-contract-analyzer → validates `api-exploration.md`
-  - test-plan-generator → validates `test-plan.md`
   - test-case-documenter → validates `test-cases.md` and `testcases.json`
   - page-object-generator → validates Page Object files
   - api-client-generator → validates API client files
@@ -29,7 +28,7 @@ Validate all generated pipeline artifacts (requirements.md, exploration.md, api-
 
 ## Inputs
 
-- Artifact type: `requirements` | `exploration` | `api-exploration` | `test-plan` | `test-cases` | `testcases-json` | `page-object` | `api-client` | `test-spec`
+- Artifact type: `test-plan` | `exploration` | `api-exploration` | `test-cases` | `testcases-json` | `page-object` | `api-client` | `test-spec`
 - Artifact file path: absolute path to generated artifact
 - Validation strictness: `strict` | `relaxed` (default: strict)
 - Expected schema version: semantic version (e.g., "1.0.0")
@@ -56,10 +55,9 @@ Validate all generated pipeline artifacts (requirements.md, exploration.md, api-
 
 2. **Determine Validation Schema**
    - Based on artifact type, select validation schema:
-     - **requirements.md**: See artifact-schemas.instructions.md
+     - **test-plan.md**: See artifact-schemas.instructions.md
      - **exploration.md**: See artifact-schemas.instructions.md
      - **api-exploration.md**: See artifact-schemas.instructions.md
-     - **test-plan.md**: See artifact-schemas.instructions.md
      - **test-cases.md**: See artifact-schemas.instructions.md
      - **testcases.json**: JSON schema for test case array
      - **page-object**: TypeScript class structure validation
@@ -71,10 +69,9 @@ Validate all generated pipeline artifacts (requirements.md, exploration.md, api-
      - Extract all heading levels (H1, H2, H3)
      - Build document outline
    - **Verify mandatory sections**:
-     - **requirements.md**: Story Details, Acceptance Criteria, Out of Scope, Business Rules, Dependencies, Test Objectives
+     - **test-plan.md**: Acceptance Criteria, Positive Scenarios, Negative Scenarios, Boundary Scenarios, Priority, Test Data / Dependencies, Automation Scope
      - **exploration.md**: Application Overview, Page Structure, Interactive Elements, Validation Points, Navigation Flows, Technical Notes
      - **api-exploration.md**: Endpoint Overview, Request Schema, Response Schema, Authentication, Error Responses, Dependencies
-     - **test-plan.md**: Test Scope, Test Strategy, Test Scenarios, Test Data, Environment Requirements, Risks & Assumptions
      - **test-cases.md**: Test Case ID, Title, Preconditions, Test Steps, Expected Results, Priority, Tags
    - **Check section completeness**:
      - Verify each mandatory section has content (not empty, not placeholder)
@@ -181,7 +178,7 @@ Validate all generated pipeline artifacts (requirements.md, exploration.md, api-
 |------|-----------|----------|
 | Artifact file exists | File readable at provided path | CRITICAL |
 | Valid file format | JSON parseable, Markdown parseable, TS parseable | CRITICAL |
-| All mandatory sections present | Requirements.md has all required sections | CRITICAL |
+| All mandatory sections present | test-plan.md has all required sections | CRITICAL |
 | No placeholder content | No "TODO", "TBD", "[To be added]" in production artifacts | WARN |
 | Schema compliance | testcases.json matches JSON schema | CRITICAL |
 | ID format correct | Test case IDs follow TC-{FEATURE}-{NNN} pattern | CRITICAL |

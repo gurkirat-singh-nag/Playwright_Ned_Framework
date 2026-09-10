@@ -126,9 +126,8 @@ Generate a comprehensive execution summary report documenting the complete workf
 5. **Summarize Artifacts Produced**
    
    - Categorize artifacts:
-     - **Requirements artifacts**: requirements.md
-     - **Exploration artifacts**: exploration.md, api-exploration.md
      - **Planning artifacts**: test-plan.md
+     - **Exploration artifacts**: exploration.md, api-exploration.md
      - **Test case artifacts**: test-cases.md, testcases.json
      - **Code artifacts**: Page Objects, API clients, test specs, utilities
      - **Validation artifacts**: framework-analysis.md, quality-report.md, pre-commit-validation.md
@@ -231,10 +230,9 @@ Generate a comprehensive execution summary report documenting the complete workf
     
     ## Artifacts Produced
     
-    ### Requirements & Planning (3)
-    - [requirements.md](artifacts/proj-1234-login/requirements.md) (5.2 KB)
-    - [exploration.md](artifacts/proj-1234-login/exploration.md) (12.1 KB)
+    ### Planning & Exploration (2)
     - [test-plan.md](artifacts/proj-1234-login/test-plan.md) (8.3 KB)
+    - [exploration.md](artifacts/proj-1234-login/exploration.md) (12.1 KB)
     
     ### Test Cases (2)
     - [test-cases.md](artifacts/proj-1234-login/test-cases.md) (15.7 KB)

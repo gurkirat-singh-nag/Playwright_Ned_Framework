@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "generatedAt": "2026-08-31T11:17:20.628Z",
-  "signature": "c43e4f48333ee545bad80cc1f86dabdda6d77c38e1e432af6ab4545a44b17c42",
+  "generatedAt": "2026-09-10T06:02:41.841Z",
+  "signature": "ce16c080ea5d58bca2ec93fec7dc5a09c13c13ced0a5e2fd6a75d2676462f0ba",
   "language": "JavaScript",
   "uiFramework": "Playwright",
   "apiFramework": "unknown",
@@ -16,9 +16,7 @@
     "Playwright HTML",
     "line"
   ],
-  "ci": [
-    "GitHub Actions"
-  ],
+  "ci": [],
   "mcp": [
     "Playwright MCP",
     "Atlassian MCP"
@@ -35,6 +33,7 @@
     "skills": ".github/skills/",
     "agents": ".github/agents/",
     "workflows": ".github/workflows/",
-    "capabilityIndex": "artifacts/indexes/"
-  }
+    "capabilityIndex": "index/page-objects/*.json"
+  },
+  "conventions": null
 }

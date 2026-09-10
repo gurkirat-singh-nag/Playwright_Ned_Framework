@@ -16,28 +16,32 @@ This repository is an orchestration scaffold for an AI-powered test automation p
 ## Artifact Pipeline
 
 ```
-Jira Story
+Jira Story (or direct story text / a supplied manual test case)
   ↓
-requirements.md                  (jira-story-analyzer)
+test-plan.md                     (test-plan-generator, or input-normalizer for manual-test-case -
+                                   technology-neutral test plan, traceable to acceptance criteria;
+                                   the former Test Architect/Test Validator design+validation
+                                   judgment now happens inline here, before the file is written -
+                                   a blocking problem stops the pipeline here, reported, not persisted
+                                   as a separate artifact)
   ↓
-test-design.md / test-design.json (test-architect - technology-neutral, traceable to acceptance criteria)
+Existing Automation / Index      (02.5_intelligent-reuse-enforcement.hook.md - read-only search
+                                   against index/page-objects/*.json; decision passed directly,
+                                   in-memory, to exploration - never persisted to a reuse-decision file)
   ↓
-test-validation.md / test-validation.json (test-validator - GATE: BLOCKED stops here)
-  ↓
-reuse-decision.json              (02.5_intelligent-reuse-enforcement.hook.md - capability discovery)
-  ↓
-exploration.md                   (playwright-browser-exploration - scoped by the reuse decision)
-  ↓
-test-plan.md                     (test-plan-generator)
+exploration.md                   (playwright-browser-exploration - scoped by the reuse decision;
+                                   only explores what existing automation doesn't already cover)
   ↓
 test-cases.md / testcases.json   (test-case-documenter)
   ↓
-pageobjects/                     (page-object-generator)
+pageobjects/                     (page-object-generator - never writes to index/page-objects/)
   ↓
 tests/                           (test-script-generator)
 ```
 
-Every artifact is written under `artifacts/<slug>/` - see [naming.instructions.md](instructions/naming.instructions.md). No artifact is skipped, and no artifact is regenerated once it exists and remains valid.
+Exactly three story artifacts exist under `artifacts/<slug>/`: `test-plan.md`, `exploration.md`, `test-cases.md` (plus its machine-readable companion `testcases.json`) - see [naming.instructions.md](instructions/naming.instructions.md). `requirements.md`, `test-design.md`/`.json`, `test-validation.md`/`.json`, and `reuse-decision.json` are retired. `pipeline-state.json` (checkpoint/resume state) also lives under `artifacts/<slug>/` but is internal plumbing, not a story artifact. No artifact is skipped, and no artifact is regenerated once it exists and remains valid.
+
+The `index/page-objects/*.json` (and API equivalent `index/<clients|api|services>/*.json`) class index is **entirely developer-maintained**. No Agent or Skill in this pipeline ever creates, updates, regenerates, or validates it - Qatalyst only ever reads it.
 
 ## Design Principles
 
@@ -54,8 +58,8 @@ Every artifact is written under `artifacts/<slug>/` - see [naming.instructions.m
 | Agent | Responsibility |
 |---|---|
 | [central-automation-orchestrator](agents/central-automation-orchestrator.agent.md) | Understand requests and route to the correct specialist agent. Never generates tests. |
-| [ui-automation-specialist](agents/ui-automation-specialist.agent.md) | Coordinate the UI artifact pipeline via its eight Skills. |
-| [api-automation-specialist](agents/api-automation-specialist.agent.md) | Coordinate the API artifact pipeline: shares `test-architect`/`test-validator`/`test-plan-generator`/`test-case-documenter` with the UI pipeline, adds `api-capability-discovery`, `api-contract-analyzer`, `api-client-generator`, `api-test-script-generator`. |
+| [ui-automation-specialist](agents/ui-automation-specialist.agent.md) | Coordinate the UI artifact pipeline via its Skills. |
+| [api-automation-specialist](agents/api-automation-specialist.agent.md) | Coordinate the API artifact pipeline: shares `test-plan-generator`/`test-case-documenter` with the UI pipeline, adds `api-capability-discovery`, `api-contract-analyzer`, `api-client-generator`, `api-test-script-generator`. |
 | [automation-healer-specialist](agents/automation-healer-specialist.agent.md) | Diagnose and apply the smallest safe fix to failing automation. |
 | [ci-analyzer-specialist](agents/ci-analyzer-specialist.agent.md) | Investigate Azure DevOps (ADO) pipeline builds and categorize failures. |
 | [epic-to-user-stories](agents/epic-to-user-stories.agent.md) | Decompose a Jira Epic into candidate user stories. |
@@ -64,20 +68,19 @@ Every artifact is written under `artifacts/<slug>/` - see [naming.instructions.m
 
 | Skill | Responsibility |
 |---|---|
-| [framework-discovery](skills/framework-discovery/README.md) | Repository → `artifacts/indexes/framework-profile.json` (language, UI/API framework, test runner, architecture, directories, reporting, CI, MCP). Code/repository discovery only - never launches a browser or MCP session. Invoked once per request by `central-automation-orchestrator`, before UI/API path selection. |
-| [jira-story-analyzer](skills/jira-story-analyzer/README.md) | Jira/Confluence → `requirements.md`. |
-| [test-architect](skills/test-architect/README.md) | `requirements.md` + `framework-profile.json` → `test-design.md`/`test-design.json`: technology-neutral scenarios traceable to acceptance criteria, automation/manual classification, test data, risks. Reasoning/design only - no automation code, no MCP, no deep capability matching. Runs once per request, before Test Validator. |
-| [test-validator](skills/test-validator/README.md) | `test-design.json` → `test-validation.md`/`test-validation.json`: **GATE**. Validates completeness, traceability, internal consistency, duplication, automation feasibility, technology consistency, and artifact integrity (BLOCKED stops the pipeline before capability discovery/generation). No automation code, no MCP, no deep capability matching. Shared by both `ui-automation-specialist` and `api-automation-specialist` - not duplicated per project type. |
-| [api-capability-discovery](skills/api-capability-discovery/README.md) | `test-design.json` (API/both-scoped scenarios) → `api-reuse-decision.json`: searches `index/<clients|api|services>/*.json` files mirroring each client class for existing API clients/methods, decides FULL_REUSE/PARTIAL_REUSE/NO_REUSE per scenario. No Swagger fetch, no live API call, no MCP - only clears the way for conditional Swagger/API exploration next. API equivalent of the UI reuse-enforcement hook. |
-| [api-contract-analyzer](skills/api-contract-analyzer/README.md) | `requirements.md` + `api-reuse-decision.json` → `api-exploration.md`: Swagger/OpenAPI parsing or requirements-text contract extraction, scoped by the reuse decision. API equivalent of `playwright-browser-exploration`. |
-| [api-client-generator](skills/api-client-generator/README.md) | `api-exploration.md` + `testcases.json` + `framework-profile.json` (`apiFramework`) → `clients/`: generates/reuses API client classes. API equivalent of `page-object-generator`. |
+| [framework-discovery](skills/framework-discovery/README.md) | Repository → `index/framework-profile.json` (language, UI/API framework, test runner, architecture, directories, reporting, CI, MCP). Code/repository discovery only - never launches a browser or MCP session. Invoked once per request by `central-automation-orchestrator`, before UI/API path selection. |
+| [jira-story-analyzer](skills/jira-story-analyzer/README.md) | Jira/Confluence → structured story content, handed directly to `test-plan-generator` in-memory. No `requirements.md` is written. |
+| [input-normalizer](skills/input-normalizer/README.md) | Non-Jira input → the same structured content (`direct-story-text`, passed through in-memory) or `test-plan.md` directly (`manual-test-case`, a single fully-specified scenario needing no design step). |
+| [test-plan-generator](skills/test-plan-generator/README.md) | Story content + `framework-profile.json` → `test-plan.md`: technology-neutral scenarios traceable to acceptance criteria, automation/manual classification, test data, risks - merging the former Test Architect + Test Validator steps into one. Its own internal quality gate (completeness, traceability, duplication, feasibility, technology consistency) is applied inline before the file is written; a blocking problem stops the pipeline and is reported, never persisted as a separate `test-validation` artifact. No automation code, no MCP, no deep capability matching. Shared by both `ui-automation-specialist` and `api-automation-specialist` - not duplicated per project type. |
+| [api-capability-discovery](skills/api-capability-discovery/README.md) | `test-plan.md` (API/both-scoped scenarios) → an in-memory reuse decision, handed directly to `api-contract-analyzer`: searches `index/<clients|api|services>/*.json` files mirroring each client class for existing API clients/methods, decides FULL_REUSE/PARTIAL_REUSE/NO_REUSE per scenario. No Swagger fetch, no live API call, no MCP, and no persisted `api-reuse-decision.json` file. API equivalent of the UI reuse-enforcement hook. |
+| [api-contract-analyzer](skills/api-contract-analyzer/README.md) | `test-plan.md` + the in-memory API reuse decision → `api-exploration.md`: Swagger/OpenAPI parsing or requirements-text contract extraction, scoped by the reuse decision. API equivalent of `playwright-browser-exploration`. |
+| [api-client-generator](skills/api-client-generator/README.md) | `api-exploration.md` + `testcases.json` + `framework-profile.json` (`apiFramework`) → `clients/`: generates/reuses API client classes. Never writes to `index/<clients|api|services>/` - the index is developer-maintained. API equivalent of `page-object-generator`. |
 | [api-test-script-generator](skills/api-test-script-generator/README.md) | `clients/` + `testcases.json` → `tests/` (`<Feature>ApiTest.spec.js`): generates executable API test specs. API equivalent of `test-script-generator`. |
-| [pipeline-state](skills/pipeline-state/README.md) | Shared checkpoint/resume utility (not an artifact-producing Skill) - `artifacts/<slug>/pipeline-state.json` records which of 10 pipeline stages are NOT_STARTED/IN_PROGRESS/COMPLETED/FAILED/SKIPPED/BLOCKED, so a restarted pipeline resumes at the last valid checkpoint instead of repeating expensive work (especially MCP exploration). A stage is COMPLETED only when its output artifact actually validates - re-checked on every resume, never blindly trusted. |
-| [playwright-browser-exploration](skills/playwright-browser-exploration/README.md) | `requirements.md` → `exploration.md` via Playwright MCP. |
-| [test-plan-generator](skills/test-plan-generator/README.md) | `requirements.md` + `exploration.md` → `test-plan.md`. |
-| [test-case-documenter](skills/test-case-documenter/README.md) | `test-plan.md` → `test-cases.md` + `testcases.json`. |
-| [page-object-generator](skills/page-object-generator/README.md) | `exploration.md` + `testcases.json` → `pageobjects/`. |
-| [test-script-generator](skills/test-script-generator/README.md) | `pageobjects/` + `testcases.json` → `tests/`. |
+| [pipeline-state](skills/pipeline-state/README.md) | Shared checkpoint/resume utility (not an artifact-producing Skill) - `artifacts/<slug>/pipeline-state.json` records which of 9 pipeline stages are NOT_STARTED/IN_PROGRESS/COMPLETED/FAILED/SKIPPED/BLOCKED, so a restarted pipeline resumes at the last valid checkpoint instead of repeating expensive work (especially MCP exploration). A stage is COMPLETED only when its output artifact actually validates - re-checked on every resume, never blindly trusted (the one exception, `reuse-check`, has no artifact and completes only via an explicit checkpoint call). Internal state only - never a story artifact. |
+| [playwright-browser-exploration](skills/playwright-browser-exploration/README.md) | `test-plan.md` + the in-memory reuse decision → `exploration.md` via Playwright MCP, scoped to only what existing automation doesn't already cover. |
+| [test-case-documenter](skills/test-case-documenter/README.md) | `test-plan.md` + `exploration.md` → `test-cases.md` + `testcases.json`. |
+| [page-object-generator](skills/page-object-generator/README.md) | `exploration.md` + `testcases.json` → `pageobjects/`. Never writes to `index/page-objects/` - the index is developer-maintained. |
+| [test-script-generator](skills/test-script-generator/README.md) | `testcases.json` + `exploration.md` + existing `page-objects/` → `tests/`, reusing existing Page Object methods whenever one already covers a required interaction. |
 
 ## Coding Standards
 

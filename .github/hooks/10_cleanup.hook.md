@@ -73,10 +73,10 @@ Archive temporary files, remove transient artifacts, organize generated delivera
    
    **Always preserve**:
    - Final artifacts in `artifacts/<slug>/`:
-     - `requirements.md`
-     - `exploration.md`, `api-exploration.md`
      - `test-plan.md`
+     - `exploration.md`, `api-exploration.md`
      - `test-cases.md`, `testcases.json`
+     - `pipeline-state.json` (internal checkpoint/resume state)
      - Page Objects (`pageobjects/`)
      - API clients (`clients/`)
      - Test specs (`tests/`)
@@ -137,9 +137,8 @@ Archive temporary files, remove transient artifacts, organize generated delivera
      ```
      artifacts/
        <slug>/
-         requirements.md
-         exploration.md
          test-plan.md
+         exploration.md
          test-cases.md
          testcases.json
          pageobjects/

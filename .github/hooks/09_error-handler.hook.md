@@ -81,7 +81,7 @@ Provide centralized error detection, classification, logging, and recovery guida
    - **Configuration errors**: Invalid config file, missing required settings
    
    **Artifact Errors**:
-   - **Missing artifacts**: Required artifact not found (e.g., requirements.md missing)
+   - **Missing artifacts**: Required artifact not found (e.g., test-plan.md missing)
    - **Malformed artifacts**: JSON parse error, invalid YAML, corrupted Markdown
    - **Schema violations**: Artifact does not match expected schema
    
@@ -143,8 +143,8 @@ Provide centralized error detection, classification, logging, and recovery guida
    
    Analyze error context to determine root cause:
    
-   **Example: "File not found: requirements.md"**
-   - Root cause: "jira-story-analyzer Skill did not execute or failed silently"
+   **Example: "File not found: test-plan.md"**
+   - Root cause: "test-plan-generator (or input-normalizer) Skill did not execute or failed silently"
    - Or: "Artifact slug incorrect, searching in wrong directory"
    
    **Example: "ESLint exited with code 1"**
@@ -163,7 +163,7 @@ Provide centralized error detection, classification, logging, and recovery guida
    
    Determine which downstream components cannot proceed:
    
-   - If requirements.md missing: test-plan-generator, test-case-documenter cannot execute
+   - If test-plan.md missing: the Existing Automation/Index step, test-case-documenter cannot execute
    - If page-object-generator fails: test-script-generator cannot proceed
    - If compilation fails: git-validation cannot proceed, tests cannot run
    - If MCP unavailable: All MCP-dependent Skills blocked
