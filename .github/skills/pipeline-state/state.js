@@ -4,13 +4,17 @@
  * Pipeline State - shared checkpoint/resume utility
  *
  * One story-scoped file: artifacts/<slug>/pipeline-state.json. Not a Skill in the
- * "produces a reasoned artifact" sense (contrast test-architect) - this is plumbing,
- * a shared utility every agent calls at each existing Skill boundary rather than each
- * Skill implementing its own state logic (see README.md).
+ * "produces a reasoned artifact" sense (contrast test-plan-generator) - this is
+ * plumbing, a shared utility every agent calls at each existing Skill boundary
+ * rather than each Skill implementing its own state logic (see README.md). This
+ * file is internal checkpoint/resume state only - never one of the three story
+ * artifacts (test-plan.md, exploration.md, test-cases.md).
  *
  * A stage is COMPLETED only when its declared output artifact exists AND passes
- * validation - never merely because the agent started it. Reuses
- * test-validator/validate.js's schema checker rather than a second implementation.
+ * validation - never merely because the agent started it. The one exception is
+ * 'reuse-check', which has no persisted artifact by design (see STAGE_DEFINITIONS);
+ * it is COMPLETED only via an explicit checkpoint(slug, 'reuse-check', { decision, coverage })
+ * call recording the decision into state.reuse.
  */
 
 const fs = require('fs');
@@ -20,8 +24,8 @@ const crypto = require('crypto');
 const WORKSPACE_ROOT = path.resolve(__dirname, '../../..');
 
 const STAGE_ORDER = [
-  'story-analysis', 'framework-discovery', 'test-architecture', 'test-validation',
-  'capability-discovery', 'exploration', 'test-generation', 'execution', 'healing', 'reporting'
+  'framework-discovery', 'test-plan', 'reuse-check', 'exploration',
+  'test-cases', 'test-script', 'execution', 'healing', 'reporting'
 ];
 
 const VALID_STATUSES = ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'SKIPPED', 'BLOCKED'];
@@ -49,78 +53,65 @@ function hashOf(fullPath) {
  * no Runner/Healer-state/Report Analyst integration is implemented here.
  */
 const STAGE_DEFINITIONS = {
-  'story-analysis': {
-    artifact: 'requirements.md',
+  'framework-discovery': {
+    artifact: 'index/framework-profile.json',
+    global: true,
+    inputArtifact: null,
+    validate: () => {
+      const doc = readJsonSafe(path.join(WORKSPACE_ROOT, 'index/framework-profile.json'));
+      return { valid: Boolean(doc && doc.language && doc.signature) };
+    }
+  },
+  'test-plan': {
+    artifact: 'test-plan.md',
     inputArtifact: null,
     validate: (slugDir) => {
-      const p = path.join(slugDir, 'requirements.md');
+      const p = path.join(slugDir, 'test-plan.md');
       if (!fs.existsSync(p)) return { valid: false };
       const content = fs.readFileSync(p, 'utf-8');
       return { valid: content.trim().length > 0 && content.includes('#') };
     }
   },
-  'framework-discovery': {
-    artifact: 'artifacts/indexes/framework-profile.json',
-    global: true,
-    inputArtifact: null,
-    validate: () => {
-      const doc = readJsonSafe(path.join(WORKSPACE_ROOT, 'artifacts/indexes/framework-profile.json'));
-      return { valid: Boolean(doc && doc.language && doc.signature) };
-    }
-  },
-  'test-architecture': {
-    artifact: 'test-design.json',
-    inputArtifact: 'requirements.md',
+  // No persisted artifact - the Existing Automation/Index step hands its decision
+  // directly to playwright-browser-exploration in the same agent turn. This stage
+  // is only ever marked COMPLETED by an explicit checkpoint(slug, 'reuse-check', {...})
+  // call recording { decision, coverage } into state.reuse - never by evaluateStage()
+  // re-checking a file on disk, since no such file exists. See checkpoint() below.
+  'reuse-check': {
+    artifact: null,
+    inputArtifact: 'test-plan.md',
     validate: (slugDir) => {
-      const doc = readJsonSafe(path.join(slugDir, 'test-design.json'));
-      if (!doc) return { valid: false };
-      try {
-        const { validateAgainstSchema } = require('../test-validator/validate.js');
-        const schema = require('../../schemas/test-design.schema.json');
-        return { valid: validateAgainstSchema(doc, schema).length === 0 };
-      } catch {
-        return { valid: Array.isArray(doc.scenarios) }; // best-effort if validator unavailable
-      }
-    }
-  },
-  'test-validation': {
-    artifact: 'test-validation.json',
-    inputArtifact: 'test-design.json',
-    validate: (slugDir) => {
-      const doc = readJsonSafe(path.join(slugDir, 'test-validation.json'));
-      const wellFormed = Boolean(doc && ['PASS', 'PASS_WITH_WARNINGS', 'BLOCKED'].includes(doc.status));
-      // A well-formed artifact whose verdict is BLOCKED is NOT a completed stage -
-      // "valid" here means "the artifact is not malformed", not "the pipeline may proceed".
-      // See the BLOCKED handling below in checkpoint().
-      return { valid: wellFormed && doc.status !== 'BLOCKED', status: doc && doc.status, blocked: wellFormed && doc.status === 'BLOCKED' };
-    }
-  },
-  'capability-discovery': {
-    artifact: ['reuse-decision.json', 'api-reuse-decision.json'],
-    inputArtifact: 'test-design.json',
-    validate: (slugDir) => {
-      for (const name of ['reuse-decision.json', 'api-reuse-decision.json']) {
-        const doc = readJsonSafe(path.join(slugDir, name));
-        if (doc && (doc.recommendation || doc.decision)) return { valid: true, file: name };
-      }
-      return { valid: false };
+      const doc = readJsonSafe(path.join(slugDir, 'pipeline-state.json'));
+      return { valid: Boolean(doc && doc.reuse && doc.reuse.decision) };
     }
   },
   'exploration': {
     artifact: 'exploration.md',
-    inputArtifact: 'reuse-decision.json',
+    inputArtifact: null,
     validate: (slugDir) => {
       const p = path.join(slugDir, 'exploration.md');
       return { valid: fs.existsSync(p) && fs.readFileSync(p, 'utf-8').trim().length > 0 };
     }
   },
-  'test-generation': {
+  'test-cases': {
+    artifact: 'testcases.json',
+    inputArtifact: 'exploration.md',
+    validate: (slugDir) => {
+      const doc = readJsonSafe(path.join(slugDir, 'testcases.json'));
+      return { valid: Boolean(doc && Array.isArray(doc.testCases) && doc.testCases.length > 0) };
+    }
+  },
+  'test-script': {
     artifact: 'tests',
     inputArtifact: 'testcases.json',
     validate: (slugDir) => {
       const p = path.join(slugDir, 'tests');
       if (!fs.existsSync(p)) return { valid: false };
-      return { valid: fs.readdirSync(p).some(f => f.endsWith('.spec.js')) };
+      // Presence-only, not extension-matched: this folder is exclusively
+      // test-script-generator's own output for this story, so any file in
+      // it (.spec.js, .spec.ts, FooTest.java, ...) is a valid completion
+      // signal regardless of the target project's language/naming convention.
+      return { valid: fs.readdirSync(p).some(f => !f.startsWith('.')) };
     }
   },
   'execution': { notImplemented: true },
@@ -204,7 +195,7 @@ function evaluateStage(slug, stageName) {
   if (def.inputArtifact) {
     entry.inputHash = hashOf(path.join(slugDirOf(slug), def.inputArtifact));
   }
-  if (result.status) entry.detail = result.status; // e.g. test-validation's own PASS/BLOCKED
+  if (result.status) entry.detail = result.status; // e.g. reuse-check's own decision label
   if (result.file) entry.file = result.file;
   return entry;
 }
@@ -214,11 +205,25 @@ function evaluateStage(slug, stageName) {
  * invalidate strictly downstream stages when this stage's artifact changed since
  * they last ran (lightweight linear cascade, not a dependency graph).
  */
-function checkpoint(slug, stageName, { status, reason, error } = {}) {
+function checkpoint(slug, stageName, { status, reason, error, decision, coverage } = {}) {
   const state = readState(slug) || initState(slug);
 
+  if (stageName === 'reuse-check' && decision !== undefined) {
+    // No artifact is written for this stage (see STAGE_DEFINITIONS) - the decision
+    // itself, recorded here, is what evaluateStage()'s validate() checks for.
+    state.reuse = { decision, coverage };
+    writeState(slug, state); // persist reuse before re-evaluating, since validate() reads it back from disk
+    const evaluated = evaluateStage(slug, stageName);
+    state.stages[stageName] = evaluated;
+    if (evaluated.status === 'COMPLETED') {
+      advanceCurrentStage(state);
+      state.status = allStagesSettled(state) ? 'COMPLETED' : 'IN_PROGRESS';
+    }
+    return writeState(slug, state);
+  }
+
   if (status === 'BLOCKED') {
-    state.stages[stageName] = { status: 'BLOCKED', reason: reason || 'Test Validator returned BLOCKED', at: new Date().toISOString() };
+    state.stages[stageName] = { status: 'BLOCKED', reason: reason || 'Test Plan Generator\'s internal quality gate returned BLOCKED', at: new Date().toISOString() };
     state.status = 'BLOCKED';
     state.currentStage = stageName;
     return writeState(slug, state);
@@ -309,9 +314,8 @@ function resumePlan(slug) {
     !['COMPLETED', 'SKIPPED'].includes(state.stages[s].status)
   );
 
-  state.status = state.stages['test-validation'] && state.stages['test-validation'].status === 'BLOCKED'
-    ? 'BLOCKED'
-    : (nextStage ? 'IN_PROGRESS' : 'COMPLETED');
+  const anyBlocked = STAGE_ORDER.some(s => state.stages[s] && state.stages[s].status === 'BLOCKED');
+  state.status = anyBlocked ? 'BLOCKED' : (nextStage ? 'IN_PROGRESS' : 'COMPLETED');
   state.currentStage = nextStage || state.currentStage;
 
   writeState(slug, state);
@@ -324,7 +328,7 @@ module.exports = {
 };
 
 if (require.main === module) {
-  const [, , cmd, slug] = process.argv;
+  const [, , cmd, slug, stage] = process.argv;
   if (cmd === 'status' && slug) {
     const state = readState(slug);
     console.log(state ? JSON.stringify(state, null, 2) : `No pipeline-state.json for "${slug}"`);
@@ -332,7 +336,10 @@ if (require.main === module) {
     const plan = resumePlan(slug);
     console.log(`Next stage: ${plan.nextStage || '(none - pipeline complete)'}`);
     console.log(JSON.stringify(plan.state, null, 2));
+  } else if (cmd === 'checkpoint' && slug && stage) {
+    const state = checkpoint(slug, stage);
+    console.log(JSON.stringify(state.stages[stage], null, 2));
   } else {
-    console.log('Usage: node state.js status <slug> | resume <slug>');
+    console.log('Usage: node state.js status <slug> | resume <slug> | checkpoint <slug> <stage>');
   }
 }

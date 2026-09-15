@@ -10,18 +10,11 @@ playwright-report/
 .DS_Store
 Thumbs.db
 
-# Agentic pipeline artifacts - ignore top-level entries by default (test run
-# under artifacts/<slug>/, screenshots, logs, etc.), except the class index.
-# NOTE: must be artifacts/* (direct-children wildcard), not artifacts/ -
-# a bare "artifacts/" blocks git from descending into the tree at all, which
-# makes every !artifacts/... exception below silently dead (verified via
-# `git check-ignore -v`).
+# Agentic pipeline artifacts - per-story working papers (test-design.json,
+# exploration.md, screenshots, etc.) are local scratch, not shared. Anything
+# meant to be committed (framework-profile.json, the reuse index) lives
+# under index/ instead, which is tracked normally - no exception needed here.
 artifacts/*
-
-!artifacts/indexes/
-
-# Ignore deprecated capability abstraction layer (should stay empty/absent)
-artifacts/indexes/capabilities/
 
 
 # MCP server runtime

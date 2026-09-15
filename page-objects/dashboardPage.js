@@ -136,6 +136,13 @@ class dashboardPage{
     }
 
     /**
+     * Click My Timesheet button in Quick Launch widget
+     */
+    async clickMyTimesheet() {
+        await this.myTimesheetButton.click();
+    }
+
+    /**
      * Open profile dropdown menu
      */
     async openProfileMenu() {

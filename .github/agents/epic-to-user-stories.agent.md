@@ -18,7 +18,7 @@ tools:
   - todo
   - atlassian
 
-model: Claude Sonnet 4.5
+model: Claude Sonnet 5
 
 user-invocable: true
 

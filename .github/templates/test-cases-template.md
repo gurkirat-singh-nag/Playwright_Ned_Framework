@@ -1,9 +1,9 @@
 # test-cases.md - Artifact Contract
 
-Produced by: Test Case Documenter (Skill 4)
+Produced by: Test Case Documenter
 Consumed by: none directly (human-readable companion to testcases.json)
 
-This file is the authoritative, append-only human-readable test case set for one request, derived exclusively from `test-plan.md`.
+This file is the authoritative, append-only human-readable test case set for one request, derived from `test-plan.md` and `exploration.md`.
 
 ---
 
@@ -16,7 +16,7 @@ One entry per test case, in Test Case ID order. Each entry must contain:
 - **Category:** <positive | negative | boundary | regression>
 - **Priority:** <P1 | P2 | P3>
 - **Linked Scenario:** <Scenario ID from test-plan.md>
-- **Linked Requirement:** <Acceptance Criterion reference from requirements.md>
+- **Linked Requirement:** <Acceptance Criterion reference (AC-#) from test-plan.md>
 
 **Preconditions**
 

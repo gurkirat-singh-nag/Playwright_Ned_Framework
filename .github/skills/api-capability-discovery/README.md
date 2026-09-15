@@ -13,11 +13,9 @@ This Skill is therefore built to work correctly *the moment* a developer adds a 
 ## Position In The Pipeline
 
 ```
-Test Architect  →  test-design.json
+Test Plan Generator  →  test-plan.md      (merges the former Test Architect + Test Validator steps)
         ↓
-Test Validator  →  test-validation.json   [GATE]
-        ↓ (only if not BLOCKED)
-API CAPABILITY DISCOVERY  →  api-reuse-decision.json
+API CAPABILITY DISCOVERY  →  reuse decision, held in-memory
         ↓
    ┌─────────────┬──────────────┬─────────────┐
    │             │              │             │
@@ -36,19 +34,18 @@ existing    operation(s)    live API          │
            rather than always running in full)
 ```
 
-Runs once per request, inside `api-automation-specialist` (see [api-automation-specialist.agent.md](../../agents/api-automation-specialist.agent.md)), reusing Test Architect and Test Validator exactly as built for UI - **not duplicated**.
+Runs once per request, inside `api-automation-specialist` (see [api-automation-specialist.agent.md](../../agents/api-automation-specialist.agent.md)), immediately after `test-plan.md` exists - the same merged design+validation step the UI pipeline uses, not duplicated.
 
 ## Inputs
 
-- `artifacts/<slug>/test-design.json` (primary - each scenario's `steps` become the required operations to search for; scenarios with `technology: "API"` or `"both"` are in scope, `"UI"`-only scenarios are not)
+- `artifacts/<slug>/test-plan.md` (primary - each scenario's steps become the required operations to search for; scenarios scoped `API` or `both` are in scope, UI-only scenarios are not)
 - `index/<clients|api|services>/*.json` (the index this Skill searches - mirroring whichever of those three directories the target repository uses for its API client classes)
-- `artifacts/<slug>/requirements.md`, for any explicit endpoint/HTTP-method evidence not captured in `test-design.json`
 
 ## Outputs
 
-- `artifacts/<slug>/api-reuse-decision.json` - per-scenario `FULL_REUSE`/`PARTIAL_REUSE`/`NO_REUSE` with evidence, in the same `artifacts/<slug>/` directory as every other pipeline artifact.
+A per-scenario `FULL_REUSE`/`PARTIAL_REUSE`/`NO_REUSE` decision with evidence, held in-memory and passed directly to `api-contract-analyzer` within the same agent turn - **not** persisted as a separate `api-reuse-decision.json` file. The invoking agent records `{ decision, coverage }` into `pipeline-state.json`'s `reuse` field via `checkpoint(slug, 'reuse-check', ...)` for resume purposes only.
 
-This Skill only reads the index - it never writes or updates index files itself; that is `api-client-generator`'s job when it creates a class, or a manual/AI-assisted edit when retrofitting existing code (see Index Authorship below).
+This Skill only reads the index - it never writes or updates index files itself; that is `api-client-generator`'s job when it creates a class (though `api-client-generator` also never touches the index automatically - see its README), or a manual/AI-assisted edit when retrofitting existing code (see Index Authorship below).
 
 ## API Index (`index/<clients|api|services>/` files)
 
@@ -121,7 +118,7 @@ Confidence bar for `FULL_REUSE`/`PARTIAL_REUSE` is 75 (vs. 60 for the UI class i
 - Must NOT launch Playwright MCP, open a browser, take a screenshot, or perform live API exploration itself - it only decides whether those are needed next; the actual exploration stays `api-contract-analyzer`'s job (see [api-contract-analyzer/README.md](../api-contract-analyzer/README.md)).
 - Must NOT fetch a Swagger/OpenAPI document merely because a URL for one exists, when the existing implementation already fully satisfies the requirement.
 - Must NOT create a business-capability abstraction layer (`capabilities/login.json`, `capabilities/create.json`, etc.) - one file per real client class only, exactly like the UI class index.
-- Must NOT duplicate Test Architect or Test Validator - both are invoked as-is; this Skill only adds the reuse-decision step between them and generation.
+- Must NOT duplicate `test-plan-generator` - it is invoked as-is; this Skill only adds the reuse-decision step between it and generation.
 - Must NOT claim reuse from method-name similarity alone - see No False Positives.
 - Must NOT write or modify index files itself - it is a read-only consumer of the index (see Index Authorship above).
 
@@ -131,7 +128,7 @@ Index files live next to the client classes they describe (`clients/`, `api/`, o
 
 ## Integration With The API Agent
 
-See [api-automation-specialist.agent.md](../../agents/api-automation-specialist.agent.md) for the exact pipeline position. Summary: Jira Story Analyzer → **Test Architect** (reused) → **Test Validator** (reused, gate - `BLOCKED` stops here, before this Skill even runs) → **API Capability Discovery** → conditional **API Contract Analyzer** → Test Plan Generator / Test Case Documenter (reused, shared with UI) → **API Client Generator** / **API Test Script Generator**.
+See [api-automation-specialist.agent.md](../../agents/api-automation-specialist.agent.md) for the exact pipeline position. Summary: Jira Story Analyzer → **Test Plan Generator** (reused, shared with UI - merges the former design+validation steps, `test-plan.md` only) → **API Capability Discovery** → conditional **API Contract Analyzer** → **Test Case Documenter** (reused, shared with UI) → **API Client Generator** / **API Test Script Generator**.
 
 ## MCP / HTTP Calls
 
@@ -145,7 +142,7 @@ See [api-automation-specialist.agent.md](../../agents/api-automation-specialist.
 [API Capability Discovery] Scenario SC-005: decision=PARTIAL_REUSE, coverage=50%
 [API Capability Discovery]   Reusing: CustomerApiClient.createCustomer() (confidence 100)
 [API Capability Discovery]   Missing: duplicate customer handling - scoping API discovery to this only
-[API Capability Discovery] ✓ api-reuse-decision.json written
+[API Capability Discovery] ✓ decision handed to API Contract Analyzer (no file written)
 ```
 
 ## Limitations

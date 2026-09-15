@@ -2,19 +2,20 @@
 
 ## Purpose
 
-The API equivalent of `page-object-generator`: generate reusable API client classes from `api-exploration.md`'s contract evidence and the operations required by `testcases.json`. Framework-agnostic: the client library used is whatever `artifacts/indexes/framework-profile.json` reports as `apiFramework`, never assumed.
+The API equivalent of `page-object-generator`: generate reusable API client classes from `api-exploration.md`'s contract evidence and the operations required by `testcases.json`. Framework-agnostic: the client library used is whatever `index/framework-profile.json` reports as `apiFramework`, never assumed.
 
 ## Inputs
 
 - `artifacts/<slug>/api-exploration.md`
 - `artifacts/<slug>/testcases.json`
-- `artifacts/indexes/framework-profile.json` (`apiFramework`, `architecture.api`)
+- `index/framework-profile.json` (`apiFramework`, `architecture.api`)
 - `index/<clients|api|services>/*.json` (existing client index, via `api-capability-discovery`'s search)
 
 ## Outputs
 
 - `clients/` (or the target repository's existing API client directory - `api/`, `clients/`, or `services/`, whichever `architecture.api` / the existing index already uses; create `clients/` only when none of these exist yet)
-- `index/<clients|api|services>/<className>.json` mirroring each client class this Skill creates or modifies
+
+This Skill never writes to `index/<clients|api|services>/` - see "What This Skill Must NOT Do" below.
 
 ## Artifacts Consumed
 
@@ -30,7 +31,11 @@ The API equivalent of `page-object-generator`: generate reusable API client clas
 4. For each operation without existing coverage, generate a client method using `api-exploration.md`'s recorded path, HTTP method, request/response schema, and authentication requirement.
 5. Follow [api-client.instructions.md](../../instructions/api-client.instructions.md) for naming/structure conventions.
 6. Update each test case's `requiredApiClients` field in `testcases.json` to reflect the client method(s) it depends on (same pattern as `requiredPageObjects`).
-7. Write the client file(s), and write or update the matching `index/<clients|api|services>/<className>.json` for each one - see [api-client.instructions.md](../../instructions/api-client.instructions.md). This Skill already knows exactly which methods it just wrote, so authoring the index entry here costs nothing extra and needs no source parsing.
+7. Write the client file(s).
+
+## What This Skill Must NOT Do
+
+- Must NOT create, update, regenerate, or validate any file under `index/<clients|api|services>/` - the index is entirely developer-maintained (see [api-capability-discovery/README.md](../api-capability-discovery/README.md)). If this Skill creates or modifies a client class, keeping its index entry current afterward is a developer task, not something this Skill does automatically.
 
 ## Failure Handling
 

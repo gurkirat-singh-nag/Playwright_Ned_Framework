@@ -7,45 +7,41 @@ The API equivalent of `playwright-browser-exploration`: produce a factual, evide
 ## Position In The Pipeline
 
 ```
-Test Architect  →  test-design.json
+Test Plan Generator  →  test-plan.md      (merges the former Test Architect + Test Validator steps)
         ↓
-Test Validator  →  test-validation.json   [GATE]
-        ↓ (only if not BLOCKED)
-API Capability Discovery  →  api-reuse-decision.json
+API Capability Discovery  →  reuse decision, held in-memory
         ↓
 API CONTRACT ANALYZER  →  api-exploration.md      ← this Skill
         ↓
-Test Plan Generator / Test Case Documenter (shared with UI pipeline)
+Test Case Documenter (shared with UI pipeline)
         ↓
 API Client Generator  →  clients/
         ↓
 API Test Script Generator  →  tests/
 ```
 
-Runs inside `api-automation-specialist` (see [api-automation-specialist.agent.md](../../agents/api-automation-specialist.agent.md) Step 6), only reached if the Test Validator gate did not block and only for the scenarios `api-capability-discovery` did not already resolve as `FULL_REUSE`.
+Runs inside `api-automation-specialist` (see [api-automation-specialist.agent.md](../../agents/api-automation-specialist.agent.md)), only reached if `test-plan-generator`'s internal quality gate did not block and only for the scenarios `api-capability-discovery` did not already resolve as `FULL_REUSE`.
 
 ## Inputs
 
-- `artifacts/<slug>/requirements.md` - the Swagger/OpenAPI URL or file (if any) and/or the plain-language endpoint description that defines exploration scope.
-- `artifacts/<slug>/api-reuse-decision.json` (optional) - written by `api-capability-discovery`. When present, it scopes this Skill exactly the way `reuse-decision.json` scopes `playwright-browser-exploration`.
+- `artifacts/<slug>/test-plan.md` - the Swagger/OpenAPI URL or file (if any) and/or the plain-language endpoint description that defines exploration scope.
+- The reuse decision - handed directly to this Skill in-memory by the invoking agent, computed by `api-capability-discovery` immediately before this Skill runs. This Skill does not read a persisted `api-reuse-decision.json` file - none exists.
 
 ## Outputs
 
-- `artifacts/<slug>/api-exploration.md` - structure: Endpoint Overview, Request Schema, Response Schema, Authentication, Error Responses, Dependencies (matches [05_artifact-validation.hook.md](../../hooks/05_artifact-validation.hook.md)'s expected sections).
+- `artifacts/<slug>/api-exploration.md` - structure: Endpoint Overview, Request Schema, Response Schema, Authentication, Error Responses, Dependencies.
 
 ## Artifacts Consumed
 
-- `requirements.md` and `api-reuse-decision.json` only. This Skill must never contact Jira/Confluence directly - any requirement context must already be present in `requirements.md`.
+- `test-plan.md` only. This Skill must never contact Jira/Confluence directly - any requirement context must already be present in `test-plan.md`.
 
 ## Execution Steps
 
-### Step 0: Check Reuse Decision
-
-If `artifacts/<slug>/api-reuse-decision.json` exists:
+### Step 0: Apply The Reuse Decision
 
 - A scenario resolved `FULL_REUSE` - do not analyze it. Write its section of `api-exploration.md` directly from the existing client method's recorded `httpMethod`/`endpoint` (from its `index/<clients|api|services>/` entry), same "document what's reused, don't re-derive it" pattern as UI exploration.
 - A scenario resolved `PARTIAL_REUSE` - analyze only its `missing[]` operations.
-- A scenario resolved `NO_REUSE`, or no decision file exists - proceed to Step 1 in full for that scenario.
+- A scenario resolved `NO_REUSE` - proceed to Step 1 in full for that scenario.
 
 ### Step 1: Check Artifact Existence
 
@@ -53,8 +49,8 @@ If `api-exploration.md` already exists and is structurally valid for the current
 
 ### Step 2: Locate The Contract Source
 
-- If `requirements.md` references a Swagger/OpenAPI document (URL or file path), fetch/read it. A remote URL is fetched read-only; a local file is read directly. Never fetch a spec for a scenario already resolved `FULL_REUSE` (see Step 0).
-- If no machine-readable spec exists, treat the plain-language endpoint description in `requirements.md` as the contract source. Anything not explicitly stated there (an undocumented field, an assumed status code) is marked as an **assumption**, never invented as fact.
+- If `test-plan.md` references a Swagger/OpenAPI document (URL or file path), fetch/read it. A remote URL is fetched read-only; a local file is read directly. Never fetch a spec for a scenario already resolved `FULL_REUSE` (see Step 0).
+- If no machine-readable spec exists, treat the plain-language endpoint description in `test-plan.md` as the contract source. Anything not explicitly stated there (an undocumented field, an assumed status code) is marked as an **assumption**, never invented as fact.
 
 ### Step 3: Extract Operations
 
@@ -74,7 +70,7 @@ Write `api-exploration.md` with each operation's evidence, noting per-operation 
 
 ## Failure Handling
 
-- Spec unreachable AND `requirements.md` has no explicit contract detail: stop the pipeline and report before Test Plan Generator runs - it has no evidence to consume, same failure mode as `playwright-browser-exploration`'s total-exploration-failure case.
+- Spec unreachable AND `test-plan.md` has no explicit contract detail: stop the pipeline and report before Test Case Documenter runs - it has no evidence to consume, same failure mode as `playwright-browser-exploration`'s total-exploration-failure case.
 - Spec reachable but incomplete for one operation (e.g. no documented error responses): proceed, flag the specific gap in `api-exploration.md` rather than blocking the whole artifact.
 
 ## Retry Strategy
@@ -84,7 +80,7 @@ Write `api-exploration.md` with each operation's evidence, noting per-operation 
 
 ## Logging
 
-- Log: operations captured, source per operation (Swagger doc / requirements.md / reused-from-index), assumptions made, and any live-verification calls issued (method + target, never payload contents if it may contain secrets).
+- Log: operations captured, source per operation (Swagger doc / test-plan.md / reused-from-index), assumptions made, and any live-verification calls issued (method + target, never payload contents if it may contain secrets).
 
 ## What This Skill Must NOT Do
 
