@@ -6,17 +6,6 @@ Let the pipeline **resume from the last valid checkpoint instead of repeating ex
 
 This is plumbing, not a Skill in the "produces a reasoned artifact" sense (contrast `test-plan-generator`). It is a shared utility ([state.js](state.js)) every agent calls at existing Skill boundaries - no agent or Skill implements its own state logic, and the orchestrator is not redesigned to own it. `pipeline-state.json` is internal checkpoint/resume state only, never one of the three story artifacts (`test-plan.md`, `exploration.md`, `test-cases.md`).
 
-## No Duplicate State System - What Was Checked First
-
-Before writing anything, every hook was inspected for an existing state/completion-marker mechanism:
-
-- `01_repository-sync.hook.md` / `02_workspace-validation.hook.md` - Git and directory-structure health checks, not pipeline progress.
-- `08_execution-summary.hook.md` - a **post-hoc** report (`execution-summary.md`) written after a run completes; historical record, not live/resumable state.
-- `09_error-handler.hook.md` - a **reactive** append-only `error-log.md`; useful context for `pipeline-state.json`'s `errors[]` array, but not itself a state/resume mechanism.
-- `10_cleanup.hook.md` - end-of-run archiving.
-
-None track "which stage completed, is running, or can be resumed." This is genuinely new, not a second implementation of something that already existed.
-
 ## State Location
 
 One file per story: `artifacts/<slug>/pipeline-state.json`. No `.agent-01-complete`-style markers, no database.

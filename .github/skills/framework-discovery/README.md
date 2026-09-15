@@ -96,10 +96,6 @@ This means editing a test spec or a single Page Object method does **not** inval
 - If `uiFramework` or `apiFramework` is `"unknown"` or `"none"` for the kind of work requested, the consuming agent should surface that as a blocker/question rather than guessing a framework to generate against.
 - If `architecture.ui`/`architecture.api`/`directories.pageObjects`/`directories.apiClients` come back `"unknown"` for a repo that clearly does have existing source in some non-default location, that's the signal to run `repo-convention-discovery` (see `.github/skills/repo-convention-discovery/README.md`) once, rather than treating `"unknown"` as a dead end.
 
-## Relationship To `.github/hooks/03_framework-discovery.hook.md`
-
-That hook performs a related but distinct job: broader per-run framework/dependency verification (including missing-dependency warnings) scoped to *before each UI/API generation agent runs*, writing `framework-analysis.md`. This Skill is the single, cached, orchestrator-level source of "what is this repository" truth, written once per repository-state change to a structured JSON profile. The hook is not modified by this Skill's introduction; over time the hook may be simplified to read `framework-profile.json` instead of re-detecting frameworks itself, but that consolidation is out of scope here.
-
 ## Failure Handling
 
 - If no `package.json`, `pom.xml`, `build.gradle`, `requirements.txt`, or `pyproject.toml` exists: set `language` to `"unknown"` and continue - do not fail the pipeline.
